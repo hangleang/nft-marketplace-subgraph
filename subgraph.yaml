@@ -1,0 +1,65 @@
+specVersion: 0.0.1
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum
+    name: Marketplace
+    network: mumbai
+    source:
+      address: "0xD4A6A00c2326508F8f6eDa662ad550CD22ae75dc"
+      abi: Marketplace
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      entities:
+        - AdminChanged
+        - AuctionBuffersUpdated
+        - AuctionClosed
+        - BeaconUpgraded
+        - Initialized
+        - ListingAdded
+        - ListingRemoved
+        - ListingUpdated
+        - NewOffer
+        - NewSale
+        - PlatformFeeInfoUpdated
+        - RoleAdminChanged
+        - RoleGranted
+        - RoleRevoked
+        - Upgraded
+      abis:
+        - name: Marketplace
+          file: ./abis/Marketplace.json
+      eventHandlers:
+        - event: AdminChanged(address,address)
+          handler: handleAdminChanged
+        - event: AuctionBuffersUpdated(uint256,uint256)
+          handler: handleAuctionBuffersUpdated
+        - event: AuctionClosed(indexed uint256,indexed address,indexed bool,address,address)
+          handler: handleAuctionClosed
+        - event: BeaconUpgraded(indexed address)
+          handler: handleBeaconUpgraded
+        - event: Initialized(uint8)
+          handler: handleInitialized
+        - event: ListingAdded(indexed uint256,indexed address,indexed address,(uint256,address,address,uint256,uint256,uint256,uint256,address,uint256,uint256,uint8,uint8))
+          handler: handleListingAdded
+        - event: ListingRemoved(indexed uint256,indexed address)
+          handler: handleListingRemoved
+        - event: ListingUpdated(indexed uint256,indexed address)
+          handler: handleListingUpdated
+        - event: NewOffer(indexed uint256,indexed address,indexed uint8,uint256,uint256,address)
+          handler: handleNewOffer
+        - event: NewSale(indexed uint256,indexed address,indexed address,address,uint256,uint256)
+          handler: handleNewSale
+        - event: PlatformFeeInfoUpdated(indexed address,uint256)
+          handler: handlePlatformFeeInfoUpdated
+        - event: RoleAdminChanged(indexed bytes32,indexed bytes32,indexed bytes32)
+          handler: handleRoleAdminChanged
+        - event: RoleGranted(indexed bytes32,indexed address,indexed address)
+          handler: handleRoleGranted
+        - event: RoleRevoked(indexed bytes32,indexed address,indexed address)
+          handler: handleRoleRevoked
+        - event: Upgraded(indexed address)
+          handler: handleUpgraded
+      file: ./src/marketplace.ts
