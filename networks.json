@@ -1,7 +1,12 @@
 {
   "mumbai": {
     "Marketplace": {
-      "address": "0xD4A6A00c2326508F8f6eDa662ad550CD22ae75dc"
+      "address": "0xC10c4A2F88924222fB33B048b494318cdE757DB8",
+      "startBlock": 28851303
+    },
+    "ContractFactory": {
+      "address": "0xe22037363DCb370C7660EC80E1634D3eBaC48DB7",
+      "startBlock": 28851285
     }
   }
 }

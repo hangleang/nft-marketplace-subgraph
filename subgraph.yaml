@@ -1,4 +1,4 @@
-specVersion: 0.0.1
+specVersion: 0.0.4
 schema:
   file: ./schema.graphql
 dataSources:
@@ -6,43 +6,29 @@ dataSources:
     name: Marketplace
     network: mumbai
     source:
-      address: "0xD4A6A00c2326508F8f6eDa662ad550CD22ae75dc"
+      address: "0xC10c4A2F88924222fB33B048b494318cdE757DB8"
       abi: Marketplace
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.5
+      apiVersion: 0.0.6
       language: wasm/assemblyscript
+      file: ./src/marketplace.ts
       entities:
-        - AdminChanged
-        - AuctionBuffersUpdated
-        - AuctionClosed
-        - BeaconUpgraded
-        - Initialized
-        - ListingAdded
-        - ListingRemoved
-        - ListingUpdated
-        - NewOffer
-        - NewSale
-        - PlatformFeeInfoUpdated
-        - RoleAdminChanged
-        - RoleGranted
-        - RoleRevoked
-        - Upgraded
+        - Marketplace
+        - Listing
+        - Offer
+        - Sale
+        - Activity
       abis:
         - name: Marketplace
           file: ./abis/Marketplace.json
       eventHandlers:
-        - event: AdminChanged(address,address)
-          handler: handleAdminChanged
-        - event: AuctionBuffersUpdated(uint256,uint256)
-          handler: handleAuctionBuffersUpdated
         - event: AuctionClosed(indexed uint256,indexed address,indexed bool,address,address)
           handler: handleAuctionClosed
-        - event: BeaconUpgraded(indexed address)
-          handler: handleBeaconUpgraded
         - event: Initialized(uint8)
           handler: handleInitialized
-        - event: ListingAdded(indexed uint256,indexed address,indexed address,(uint256,address,address,uint256,uint256,uint256,uint256,address,uint256,uint256,uint8,uint8))
+        - event: ListingAdded(indexed uint256,indexed address,indexed
+            address,(uint256,address,address,uint256,uint256,uint256,uint256,address,uint256,uint256,uint8,uint8))
           handler: handleListingAdded
         - event: ListingRemoved(indexed uint256,indexed address)
           handler: handleListingRemoved
@@ -52,14 +38,144 @@ dataSources:
           handler: handleNewOffer
         - event: NewSale(indexed uint256,indexed address,indexed address,address,uint256,uint256)
           handler: handleNewSale
-        - event: PlatformFeeInfoUpdated(indexed address,uint256)
-          handler: handlePlatformFeeInfoUpdated
-        - event: RoleAdminChanged(indexed bytes32,indexed bytes32,indexed bytes32)
-          handler: handleRoleAdminChanged
-        - event: RoleGranted(indexed bytes32,indexed address,indexed address)
-          handler: handleRoleGranted
-        - event: RoleRevoked(indexed bytes32,indexed address,indexed address)
-          handler: handleRoleRevoked
-        - event: Upgraded(indexed address)
-          handler: handleUpgraded
-      file: ./src/marketplace.ts
+
+  - kind: ethereum
+    name: ContractFactory
+    network: mumbai
+    source:
+      address: "0xe22037363DCb370C7660EC80E1634D3eBaC48DB7"
+      abi: ContractFactory
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      file: ./src/contract-factory.ts
+      entities:
+        - Collection
+        - Activity
+      abis:
+        - name: ContractFactory
+          file: ./abis/ContractFactory.json
+      eventHandlers:
+        - event: ProxyDeployed(indexed address,address,indexed address)
+          handler: handleProxyDeployed
+
+templates:
+  - kind: ethereum
+    name: ERC721Token
+    network: mumbai
+    source:
+      abi: ERC721Token
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      file: ./src/erc-721-token.ts
+      entities:
+        - Collection
+        - Token
+        - Activity
+      abis:
+        - name: ERC721Token
+          file: ./abis/ERC721Token.json
+      eventHandlers:
+        - event: ERC721TokenInitialized(uint8)
+          handler: handleERC721TokenInitialized
+        - event: TokensMinted(indexed address,indexed uint256,string)
+          handler: handleTokensMinted
+        - event: TokensMintedWithSignature(indexed address,indexed address,indexed
+            uint256,(address,address,uint256,address,string,uint256,address,uint128,uint128,bytes32))
+          handler: handleTokensMintedWithSignature
+        - event: Transfer(indexed address,indexed address,indexed uint256)
+          handler: handleTransfer
+
+  - kind: ethereum
+    name: ERC1155Drop
+    network: mumbai
+    source:
+      abi: ERC1155Drop
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      file: ./src/erc-1155-drop.ts
+      entities:
+        - Collection
+        - Token
+        - Activity
+      abis:
+        - name: ERC1155Drop
+          file: ./abis/ERC1155Drop.json
+      eventHandlers:
+        - event: ERC1155DropInitialized(uint8)
+          handler: handleERC1155DropInitialized
+        - event: TokensClaimed(indexed uint256,indexed uint256,indexed address,address,uint256)
+          handler: handleTokensClaimed
+        - event: TokensLazyMinted(uint256,uint256,string)
+          handler: handleTokensLazyMinted
+        - event: TransferBatch(indexed address,indexed address,indexed address,uint256[],uint256[])
+          handler: handleTransferBatch
+        - event: TransferSingle(indexed address,indexed address,indexed address,uint256,uint256)
+          handler: handleTransferSingle
+
+  - kind: ethereum
+    name: ERC1155Token
+    network: mumbai
+    source:
+      abi: ERC1155Token
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      file: ./src/erc-1155-token.ts
+      entities:
+        - Collection
+        - Token
+        - Activity
+      abis:
+        - name: ERC1155Token
+          file: ./abis/ERC1155Token.json
+      eventHandlers:
+        - event: ERC1155TokenInitialized(uint8)
+          handler: handleERC1155TokenInitialized
+        - event: ERC1155TokenTokensMinted(indexed address,indexed uint256,string,uint256)
+          handler: handleERC1155TokenTokensMinted
+        - event: ERC1155TokenTokensMintedWithSignature(indexed address,indexed address,indexed
+            uint256,(address,address,uint256,address,uint256,string,uint256,uint256,address,uint128,uint128,bytes32))
+          handler: handleERC1155TokenTokensMintedWithSignature
+        - event: ERC1155TokenTransferBatch(indexed address,indexed address,indexed
+            address,uint256[],uint256[])
+          handler: handleERC1155TokenTransferBatch
+        - event: ERC1155TokenTransferSingle(indexed address,indexed address,indexed
+            address,uint256,uint256)
+          handler: handleERC1155TokenTransferSingle
+
+  - kind: ethereum
+    name: ERC721Drop
+    network: mumbai
+    source:
+      abi: ERC721Drop
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      file: ./src/erc-721-drop.ts
+      entities:
+        - Collection
+        - Token
+        - Activity
+      abis:
+        - name: ERC721Drop
+          file: ./abis/ERC721Drop.json
+      eventHandlers:
+        - event: ERC721DropInitialized(uint8)
+          handler: handleERC721DropInitialized
+        - event: NFTRevealed(uint256,string)
+          handler: handleNFTRevealed
+        - event: ERC721DropTokensClaimed(indexed uint256,indexed address,indexed
+            address,uint256,uint256)
+          handler: handleERC721DropTokensClaimed
+        - event: ERC721DropTokensLazyMinted(uint256,uint256,string,bytes)
+          handler: handleERC721DropTokensLazyMinted
+        - event: ERC721DropTransfer(indexed address,indexed address,indexed uint256)
+          handler: handleERC721DropTransfer

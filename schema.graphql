@@ -1,6 +1,196 @@
-type ExampleEntity @entity {
+type Marketplace @entity {
   id: ID!
-  count: BigInt!
-  previousAdmin: Bytes! # address
-  newAdmin: Bytes! # address
+  collectionTotal: Int!
+  salesTotal: Int!
+}
+
+type User @entity {
+  id: ID! # user address
+  tokens: [Balance!]! @derivedFrom(field: "owner")
+  listings: [Listing!]! @derivedFrom(field: "owner")
+  collections: [Collection!]! @derivedFrom(field: "creator")
+  
+  sales: BigInt!
+  purchases: BigInt!
+  highestSale: BigInt 
+  spent: BigDecimal!
+  activities: [Activity!]! @derivedFrom(field: "from")
+}
+
+type Collection @entity {
+  id: ID! # token address
+  collectionType: CollectionType!
+  creator: User! 
+  tokens: [Token!]! @derivedFrom(field: "collection")
+
+  # metadata
+  metadataURI: String!
+  title: String!
+  description: String!
+  featuredImage: String!
+  bannerImage: String
+  traits: [CollectionTrait!]! @derivedFrom(field: "collection")
+
+  # media: CollectionMedia
+  statistics: CollectionStats
+
+  activities: [Activity!]! @derivedFrom(field: "collection")
+  createdAt: BigInt! 
+  updatedAt: BigInt!
+}
+
+type Token @entity {
+  id: ID!
+  collection: Collection!
+  tokenId: BigInt!
+  balances: [Balance!]! @derivedFrom(field: "token")
+
+  # metadata
+  tokenURI: String!
+  name: String
+  description: String
+  contentURI: String
+  properties: [Property!]! @derivedFrom(field: "token")
+
+  activities: [Activity!]! @derivedFrom(field: "token")
+  createdAt: BigInt!
+  updatedAt: BigInt!
+}
+
+type Listing @entity {
+  id: ID! 
+  token: Token!
+  owner: User! 
+  listingType: ListingType!
+
+  # listing properties
+  startTime: BigInt
+  endTime: BigInt
+  quantity: BigInt!
+  currency: Bytes
+  reservePricePerToken: BigInt
+  buyoutPricePerToken: BigInt
+
+  offers: [Offer!] @derivedFrom(field: "listing")
+  activeOffer: Offer
+  
+  createdAt: BigInt!
+  updatedAt: BigInt!
+  removedAt: BigInt
+  soldAt: BigInt
+}
+
+# event-based entities
+
+type Offer @entity {
+  id: ID!
+  listing: Listing!
+  offeror: User!
+
+  quantity: BigInt!
+  offerAmount: BigInt! # total amount offer
+  currency: Bytes
+  expiredTimestamp: BigInt!
+
+  # transaction
+  txHash: Bytes!
+  timestamp: BigInt!
+}
+
+type Sale @entity {
+  id: ID!
+  listing: Listing!
+  seller: User!
+  receiver: User!
+  quantityBought: BigInt
+  totalPaid: BigInt
+
+  # transaction
+  txHash: Bytes!
+  timestamp: BigInt!
+}
+
+type Activity @entity {
+  id: ID!
+  from: User
+  to: User
+  collection: Collection
+  token: Token
+  activityType: ActivityType!
+  price: BigInt
+  quantity: BigInt
+
+  # transaction
+  txHash: Bytes!
+  blockHash: Bytes!
+  timestamp: BigInt!
+}
+
+# misc
+
+type CollectionTrait @entity {
+  id: ID!
+  collection: Collection!
+  attribute: String!
+  values: [String!]!
+}
+
+type CollectionMedia @entity {
+  id: ID!
+  collection: Collection!
+  website: String
+  telegram: String
+  twitter: String
+  discord: String
+}
+
+type CollectionStats @entity {
+  id: ID!
+  collection: Collection!
+  volume: BigInt!
+  sales: BigInt!
+  highestSale: BigInt!
+  floorPrice: BigInt!
+  averagePrice: BigInt!
+}
+
+type Balance @entity {
+  id: ID!
+  token: Token!
+  owner: User!
+  quantity: BigInt!
+}
+
+type Property @entity {
+  id: ID!
+  token: Token!
+  attribute: String!
+  value: String!
+}
+
+# types
+
+enum CollectionType {
+  ERC1155Drop,
+  ERC1155Token,
+  ERC721Drop,
+  ERC721Token
+}
+
+enum ListingType {
+  Direct,
+  Auction
+}
+
+enum ActivityType {
+  CreateCollection,
+  Claimed,
+  Minted,
+  Transferred,
+  List,
+  MakeOffer,
+  Sold
+  UpdateListing,
+  CloseAuction,
+  Unlist,
 }

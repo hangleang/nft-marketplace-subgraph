@@ -2,17 +2,21 @@
   "name": "nft-marketplace",
   "license": "UNLICENSED",
   "scripts": {
-    "codegen": "graph codegen",
+    "codegen": "graph codegen --debug",
     "build": "graph build",
-    "deploy": "graph deploy --node https://api.thegraph.com/deploy/ hangleang/nft-marketplace",
     "create-local": "graph create --node http://localhost:8020/ hangleang/nft-marketplace",
     "remove-local": "graph remove --node http://localhost:8020/ hangleang/nft-marketplace",
     "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 hangleang/nft-marketplace",
+    "deploy:mainnet": "graph deploy hangleang/nft-marketplace --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs/ --network mainnet",
+    "deploy:goerli": "graph deploy hangleang/nft-marketplace-goerli --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs/ --network goerli",
+    "deploy:mumbai": "graph deploy hangleang/nft-marketplace-mumbai --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs/ --network mumbai",
     "test": "graph test"
   },
   "dependencies": {
     "@graphprotocol/graph-cli": "0.35.0",
     "@graphprotocol/graph-ts": "0.28.1"
   },
-  "devDependencies": { "matchstick-as": "0.5.0" }
+  "devDependencies": {
+    "matchstick-as": "0.5.0"
+  }
 }
