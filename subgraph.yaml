@@ -6,8 +6,9 @@ dataSources:
     name: Marketplace
     network: mumbai
     source:
-      address: "0xC10c4A2F88924222fB33B048b494318cdE757DB8"
       abi: Marketplace
+      address: "0xC10c4A2F88924222fB33B048b494318cdE757DB8"
+      startBlock: 28851303
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -23,7 +24,8 @@ dataSources:
         - name: Marketplace
           file: ./abis/Marketplace.json
       eventHandlers:
-        - event: AuctionClosed(indexed uint256,indexed address,indexed bool,address,address)
+        - event: AuctionClosed(indexed uint256,indexed address,indexed
+            bool,address,address)
           handler: handleAuctionClosed
         - event: Initialized(uint8)
           handler: handleInitialized
@@ -34,17 +36,19 @@ dataSources:
           handler: handleListingRemoved
         - event: ListingUpdated(indexed uint256,indexed address)
           handler: handleListingUpdated
-        - event: NewOffer(indexed uint256,indexed address,indexed uint8,uint256,uint256,address)
+        - event: NewOffer(indexed uint256,indexed address,indexed
+            uint8,uint256,uint256,address)
           handler: handleNewOffer
-        - event: NewSale(indexed uint256,indexed address,indexed address,address,uint256,uint256)
+        - event: NewSale(indexed uint256,indexed address,indexed
+            address,address,uint256,uint256)
           handler: handleNewSale
-
   - kind: ethereum
     name: ContractFactory
     network: mumbai
     source:
-      address: "0xe22037363DCb370C7660EC80E1634D3eBaC48DB7"
       abi: ContractFactory
+      address: "0xe22037363DCb370C7660EC80E1634D3eBaC48DB7"
+      startBlock: 28851285
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -59,7 +63,6 @@ dataSources:
       eventHandlers:
         - event: ProxyDeployed(indexed address,address,indexed address)
           handler: handleProxyDeployed
-
 templates:
   - kind: ethereum
     name: ERC721Token
@@ -88,7 +91,6 @@ templates:
           handler: handleTokensMintedWithSignature
         - event: Transfer(indexed address,indexed address,indexed uint256)
           handler: handleTransfer
-
   - kind: ethereum
     name: ERC1155Drop
     network: mumbai
@@ -109,15 +111,17 @@ templates:
       eventHandlers:
         - event: ERC1155DropInitialized(uint8)
           handler: handleERC1155DropInitialized
-        - event: TokensClaimed(indexed uint256,indexed uint256,indexed address,address,uint256)
+        - event: TokensClaimed(indexed uint256,indexed uint256,indexed
+            address,address,uint256)
           handler: handleTokensClaimed
         - event: TokensLazyMinted(uint256,uint256,string)
           handler: handleTokensLazyMinted
-        - event: TransferBatch(indexed address,indexed address,indexed address,uint256[],uint256[])
+        - event: TransferBatch(indexed address,indexed address,indexed
+            address,uint256[],uint256[])
           handler: handleTransferBatch
-        - event: TransferSingle(indexed address,indexed address,indexed address,uint256,uint256)
+        - event: TransferSingle(indexed address,indexed address,indexed
+            address,uint256,uint256)
           handler: handleTransferSingle
-
   - kind: ethereum
     name: ERC1155Token
     network: mumbai
@@ -140,7 +144,8 @@ templates:
           handler: handleERC1155TokenInitialized
         - event: ERC1155TokenTokensMinted(indexed address,indexed uint256,string,uint256)
           handler: handleERC1155TokenTokensMinted
-        - event: ERC1155TokenTokensMintedWithSignature(indexed address,indexed address,indexed
+        - event: ERC1155TokenTokensMintedWithSignature(indexed address,indexed
+            address,indexed
             uint256,(address,address,uint256,address,uint256,string,uint256,uint256,address,uint128,uint128,bytes32))
           handler: handleERC1155TokenTokensMintedWithSignature
         - event: ERC1155TokenTransferBatch(indexed address,indexed address,indexed
@@ -149,7 +154,6 @@ templates:
         - event: ERC1155TokenTransferSingle(indexed address,indexed address,indexed
             address,uint256,uint256)
           handler: handleERC1155TokenTransferSingle
-
   - kind: ethereum
     name: ERC721Drop
     network: mumbai
