@@ -1,203 +1,132 @@
 import {
-  ERC721TokenApproval as ERC721TokenApprovalEvent,
-  ERC721TokenApprovalForAll as ERC721TokenApprovalForAllEvent,
-  ERC721TokenDefaultRoyalty as ERC721TokenDefaultRoyaltyEvent,
-  ERC721TokenInitialized as ERC721TokenInitializedEvent,
-  ERC721TokenOwnerUpdated as ERC721TokenOwnerUpdatedEvent,
-  ERC721TokenPlatformFeeInfoUpdated as ERC721TokenPlatformFeeInfoUpdatedEvent,
-  ERC721TokenPrimarySaleRecipientUpdated as ERC721TokenPrimarySaleRecipientUpdatedEvent,
-  ERC721TokenRoleAdminChanged as ERC721TokenRoleAdminChangedEvent,
-  ERC721TokenRoleGranted as ERC721TokenRoleGrantedEvent,
-  ERC721TokenRoleRevoked as ERC721TokenRoleRevokedEvent,
-  ERC721TokenRoyaltyForToken as ERC721TokenRoyaltyForTokenEvent,
+  InitializeCall,
   TokensMinted as TokensMintedEvent,
   TokensMintedWithSignature as TokensMintedWithSignatureEvent,
   Transfer as TransferEvent
-} from "../generated/ERC721Token/ERC721Token"
-import {
-  ERC721TokenApproval,
-  ERC721TokenApprovalForAll,
-  ERC721TokenDefaultRoyalty,
-  ERC721TokenInitialized,
-  ERC721TokenOwnerUpdated,
-  ERC721TokenPlatformFeeInfoUpdated,
-  ERC721TokenPrimarySaleRecipientUpdated,
-  ERC721TokenRoleAdminChanged,
-  ERC721TokenRoleGranted,
-  ERC721TokenRoleRevoked,
-  ERC721TokenRoyaltyForToken,
-  TokensMinted,
-  TokensMintedWithSignature,
-  Transfer
-} from "../generated/schema"
+} from "../generated/templates/ERC721Token/ERC721Token"
+import { Collection, Token } from "../generated/schema"
+import { ONE_BIGINT } from "./constants";
+import * as collections from "./constants/collections";
+import * as activities from "./constants/activities";
+import { generateUID, loadContentFromURI } from "./utils";
+import { createOrUpdateCollection } from "./modules/collection";
+import { createOrUpdateToken, createOrUpdateTokenBalance, generateTokenName, transferTokenBalance } from "./modules/token";
+import { createActivity } from "./modules/activity";
 
-export function handleERC721TokenApproval(
-  event: ERC721TokenApprovalEvent
-): void {
-  let entity = new ERC721TokenApproval(
-    event.transaction.hash.toHex() + "-" + event.logIndex.toString()
-  )
-  entity.owner = event.params.owner
-  entity.approved = event.params.approved
-  entity.tokenId = event.params.tokenId
-  entity.save()
-}
+export function handleERC721TokenInitialized(call: InitializeCall): void {
+  // define local vars from call params
+  const currentTimestamp = call.block.timestamp;
+  const collectionAddress = call.to;
+  const contractURI = call.inputs._contractURI;
+  const defaultAdmin = call.inputs._defaultAdmin;
 
-export function handleERC721TokenApprovalForAll(
-  event: ERC721TokenApprovalForAllEvent
-): void {
-  let entity = new ERC721TokenApprovalForAll(
-    event.transaction.hash.toHex() + "-" + event.logIndex.toString()
-  )
-  entity.owner = event.params.owner
-  entity.operator = event.params.operator
-  entity.approved = event.params.approved
-  entity.save()
-}
+  // init collection entity
+  let collection = createOrUpdateCollection(collectionAddress, currentTimestamp);
+  collection.collectionType = collections.ERC721Token;
+  collection.metadataURI = contractURI;
+  if (collection.creator !== defaultAdmin.toHex()) {
+    collection.creator = defaultAdmin.toHex();
+  }
+  
+  // fetch metadata from IPFS URI, then set metadata fields
+  const content = loadContentFromURI(contractURI);
+  if (content) {
+    collection.title = content.mustGet("title").toString();
+    collection.description = content.mustGet("description").toString();
+    collection.featuredImage = content.mustGet("featuredImage").toString();
+    collection.bannerImage = content.mustGet("bannerImage").toString();
+    collection.externalLink = content.mustGet("externalLink").toString();
+  } else {
+    collection.title = call.inputs._name; 
+  }
+  collection.updatedAt = currentTimestamp;
+  collection.save()
 
-export function handleERC721TokenDefaultRoyalty(
-  event: ERC721TokenDefaultRoyaltyEvent
-): void {
-  let entity = new ERC721TokenDefaultRoyalty(
-    event.transaction.hash.toHex() + "-" + event.logIndex.toString()
-  )
-  entity.newRoyaltyRecipient = event.params.newRoyaltyRecipient
-  entity.newRoyaltyBps = event.params.newRoyaltyBps
-  entity.save()
-}
-
-export function handleERC721TokenInitialized(
-  event: ERC721TokenInitializedEvent
-): void {
-  let entity = new ERC721TokenInitialized(
-    event.transaction.hash.toHex() + "-" + event.logIndex.toString()
-  )
-  entity.version = event.params.version
-  entity.save()
-}
-
-export function handleERC721TokenOwnerUpdated(
-  event: ERC721TokenOwnerUpdatedEvent
-): void {
-  let entity = new ERC721TokenOwnerUpdated(
-    event.transaction.hash.toHex() + "-" + event.logIndex.toString()
-  )
-  entity.prevOwner = event.params.prevOwner
-  entity.newOwner = event.params.newOwner
-  entity.save()
-}
-
-export function handleERC721TokenPlatformFeeInfoUpdated(
-  event: ERC721TokenPlatformFeeInfoUpdatedEvent
-): void {
-  let entity = new ERC721TokenPlatformFeeInfoUpdated(
-    event.transaction.hash.toHex() + "-" + event.logIndex.toString()
-  )
-  entity.platformFeeRecipient = event.params.platformFeeRecipient
-  entity.platformFeeBps = event.params.platformFeeBps
-  entity.save()
-}
-
-export function handleERC721TokenPrimarySaleRecipientUpdated(
-  event: ERC721TokenPrimarySaleRecipientUpdatedEvent
-): void {
-  let entity = new ERC721TokenPrimarySaleRecipientUpdated(
-    event.transaction.hash.toHex() + "-" + event.logIndex.toString()
-  )
-  entity.recipient = event.params.recipient
-  entity.save()
-}
-
-export function handleERC721TokenRoleAdminChanged(
-  event: ERC721TokenRoleAdminChangedEvent
-): void {
-  let entity = new ERC721TokenRoleAdminChanged(
-    event.transaction.hash.toHex() + "-" + event.logIndex.toString()
-  )
-  entity.role = event.params.role
-  entity.previousAdminRole = event.params.previousAdminRole
-  entity.newAdminRole = event.params.newAdminRole
-  entity.save()
-}
-
-export function handleERC721TokenRoleGranted(
-  event: ERC721TokenRoleGrantedEvent
-): void {
-  let entity = new ERC721TokenRoleGranted(
-    event.transaction.hash.toHex() + "-" + event.logIndex.toString()
-  )
-  entity.role = event.params.role
-  entity.account = event.params.account
-  entity.sender = event.params.sender
-  entity.save()
-}
-
-export function handleERC721TokenRoleRevoked(
-  event: ERC721TokenRoleRevokedEvent
-): void {
-  let entity = new ERC721TokenRoleRevoked(
-    event.transaction.hash.toHex() + "-" + event.logIndex.toString()
-  )
-  entity.role = event.params.role
-  entity.account = event.params.account
-  entity.sender = event.params.sender
-  entity.save()
-}
-
-export function handleERC721TokenRoyaltyForToken(
-  event: ERC721TokenRoyaltyForTokenEvent
-): void {
-  let entity = new ERC721TokenRoyaltyForToken(
-    event.transaction.hash.toHex() + "-" + event.logIndex.toString()
-  )
-  entity.tokenId = event.params.tokenId
-  entity.royaltyRecipient = event.params.royaltyRecipient
-  entity.royaltyBps = event.params.royaltyBps
-  entity.save()
+  // init create collection activity entity
+  createActivity(activities.CreateCollection, call.block, call.transaction, null, collectionAddress, defaultAdmin, null);
 }
 
 export function handleTokensMinted(event: TokensMintedEvent): void {
-  let entity = new TokensMinted(
-    event.transaction.hash.toHex() + "-" + event.logIndex.toString()
-  )
-  entity.mintedTo = event.params.mintedTo
-  entity.tokenIdMinted = event.params.tokenIdMinted
-  entity.uri = event.params.uri
-  entity.save()
+  // define local vars from call params
+  const currentTimestamp = event.block.timestamp;
+  const collection = event.address.toHex();
+  const tokenID = event.params.tokenIdMinted;
+  const tokenURI = event.params.uri;
+  const tokenUID = generateUID([collection, tokenID.toString()], "/");
+
+  // init token entity
+  let token = createOrUpdateToken(tokenUID, currentTimestamp);
+  token.collection = collection;
+  token.tokenId = tokenID;
+  token.tokenURI = tokenURI;
+
+  // fetch metadata from IPFS URI, then set metadata fields
+  const content = loadContentFromURI(tokenURI);
+  if (content) {
+    token.name = content.mustGet("name").toString();
+    token.description = content.mustGet("description").toString();
+    token.content = content.mustGet("content").toString();
+    token.externalLink = content.mustGet("externalLink").toString();
+  } else {
+    token.name = generateTokenName(collection, tokenID);
+  }
+  token.updatedAt = currentTimestamp;
+  token.save();
+
+  const recipient = event.params.mintedTo;
+  // update token balance of recipient
+  createOrUpdateTokenBalance(tokenUID, recipient, ONE_BIGINT);
+
+  // create activity entity
+  createActivity(activities.Minted, event.block, event.transaction, token, null, null, recipient);
 }
 
 export function handleTokensMintedWithSignature(
   event: TokensMintedWithSignatureEvent
 ): void {
-  let entity = new TokensMintedWithSignature(
-    event.transaction.hash.toHex() + "-" + event.logIndex.toString()
-  )
-  entity.signer = event.params.signer
-  entity.mintedTo = event.params.mintedTo
-  entity.tokenIdMinted = event.params.tokenIdMinted
-  entity.mintRequest_to = event.params.mintRequest.to
-  entity.mintRequest_royaltyRecipient =
-    event.params.mintRequest.royaltyRecipient
-  entity.mintRequest_royaltyBps = event.params.mintRequest.royaltyBps
-  entity.mintRequest_primarySaleRecipient =
-    event.params.mintRequest.primarySaleRecipient
-  entity.mintRequest_uri = event.params.mintRequest.uri
-  entity.mintRequest_price = event.params.mintRequest.price
-  entity.mintRequest_currency = event.params.mintRequest.currency
-  entity.mintRequest_validityStartTimestamp =
-    event.params.mintRequest.validityStartTimestamp
-  entity.mintRequest_validityEndTimestamp =
-    event.params.mintRequest.validityEndTimestamp
-  entity.mintRequest_uid = event.params.mintRequest.uid
-  entity.save()
+  // define local vars from call params
+  const currentTimestamp = event.block.timestamp;
+  const collection = event.address.toHex();
+  const tokenID = event.params.tokenIdMinted;
+  const tokenURI = event.params.mintRequest.uri;
+  const tokenUID = generateUID([collection, tokenID.toString()], "/");
+
+  // init token entity
+  let token = createOrUpdateToken(tokenUID, currentTimestamp);
+  token.collection = collection;
+  token.tokenId = tokenID;
+  token.tokenURI = tokenURI;
+
+  // fetch metadata from IPFS URI, then set metadata fields
+  const content = loadContentFromURI(tokenURI);
+  if (content) {
+    token.name = content.mustGet("name").toString();
+    token.description = content.mustGet("description").toString();
+    token.content = content.mustGet("content").toString();
+    token.externalLink = content.mustGet("externalLink").toString();
+  } else {
+    token.name = generateTokenName(collection, tokenID);
+  }
+  token.updatedAt = currentTimestamp;
+  token.save();
+
+  const recipient = event.params.mintedTo;
+  // update token balance of recipient
+  createOrUpdateTokenBalance(tokenUID, recipient, ONE_BIGINT);
+
+  // create activity entity
+  const signer = event.params.signer;
+  const currency = event.params.mintRequest.currency;
+  const price = event.params.mintRequest.price;
+  createActivity(activities.Minted, event.block, event.transaction, token, null, signer, recipient, ONE_BIGINT, currency, price);
 }
 
 export function handleTransfer(event: TransferEvent): void {
-  let entity = new Transfer(
-    event.transaction.hash.toHex() + "-" + event.logIndex.toString()
-  )
-  entity.from = event.params.from
-  entity.to = event.params.to
-  entity.tokenId = event.params.tokenId
-  entity.save()
+  const tokenUID = generateUID([event.address.toHex(), event.params.tokenId.toString()], "/")
+  transferTokenBalance(tokenUID, event.params.from, event.params.to, ONE_BIGINT);
+
+  // create activity entity
+  const token = Token.load(tokenUID);
+  if (!token) return;
+  createActivity(activities.Transferred, event.block, event.transaction, token, null, null, null);
 }

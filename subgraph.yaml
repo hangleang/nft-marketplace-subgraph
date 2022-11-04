@@ -1,6 +1,9 @@
 specVersion: 0.0.4
 schema:
   file: ./schema.graphql
+features:
+  - ipfsOnEthereumContracts
+  - fullTextSearch
 dataSources:
   - kind: ethereum
     name: Marketplace
@@ -81,9 +84,10 @@ templates:
       abis:
         - name: ERC721Token
           file: ./abis/ERC721Token.json
-      eventHandlers:
-        - event: ERC721TokenInitialized(uint8)
+      callHandlers:
+        - function: initialize(address,string,string,string,address[],address,address,uint128,uint128,address)
           handler: handleERC721TokenInitialized
+      eventHandlers:
         - event: TokensMinted(indexed address,indexed uint256,string)
           handler: handleTokensMinted
         - event: TokensMintedWithSignature(indexed address,indexed address,indexed
@@ -108,9 +112,10 @@ templates:
       abis:
         - name: ERC1155Drop
           file: ./abis/ERC1155Drop.json
-      eventHandlers:
-        - event: ERC1155DropInitialized(uint8)
+      callHandlers:
+        - function: initialize(address,string,string,string,address[],address,address,uint128,uint128,address)
           handler: handleERC1155DropInitialized
+      eventHandlers:
         - event: TokensClaimed(indexed uint256,indexed uint256,indexed
             address,address,uint256)
           handler: handleTokensClaimed
@@ -139,9 +144,10 @@ templates:
       abis:
         - name: ERC1155Token
           file: ./abis/ERC1155Token.json
-      eventHandlers:
-        - event: ERC1155TokenInitialized(uint8)
+      callHandlers:
+        - function: initialize(address,string,string,string,address[],address,address,uint128,uint128,address)
           handler: handleERC1155TokenInitialized
+      eventHandlers:
         - event: ERC1155TokenTokensMinted(indexed address,indexed uint256,string,uint256)
           handler: handleERC1155TokenTokensMinted
         - event: ERC1155TokenTokensMintedWithSignature(indexed address,indexed
@@ -171,9 +177,10 @@ templates:
       abis:
         - name: ERC721Drop
           file: ./abis/ERC721Drop.json
-      eventHandlers:
-        - event: ERC721DropInitialized(uint8)
+      callHandlers:
+        - function: initialize(address,string,string,string,address[],address,address,uint128,uint128,address)
           handler: handleERC721DropInitialized
+      eventHandlers:
         - event: NFTRevealed(uint256,string)
           handler: handleNFTRevealed
         - event: ERC721DropTokensClaimed(indexed uint256,indexed address,indexed
