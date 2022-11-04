@@ -1,2 +1,2 @@
-export const Direct = 'Direct';
-export const Auction = 'Auction';
+export const DIRECT = 'Direct';
+export const AUCTION = 'Auction';

@@ -63,8 +63,8 @@ dataSources:
       abis:
         - name: ContractFactory
           file: ./abis/ContractFactory.json
-      eventHandlers:
-        - event: ProxyDeployed(indexed address,address,indexed address)
+      callHandlers:
+        - function: deployProxy(bytes32,bytes)
           handler: handleProxyDeployed
 templates:
   - kind: ethereum
@@ -84,16 +84,15 @@ templates:
       abis:
         - name: ERC721Token
           file: ./abis/ERC721Token.json
-      callHandlers:
-        - function: initialize(address,string,string,string,address[],address,address,uint128,uint128,address)
-          handler: handleERC721TokenInitialized
       eventHandlers:
         - event: TokensMinted(indexed address,indexed uint256,string)
+          topic0: "0x9d89e36eadf856db0ad9ffb5a569e07f95634dddd9501141ecf04820484ad0dc"
           handler: handleTokensMinted
         - event: TokensMintedWithSignature(indexed address,indexed address,indexed
             uint256,(address,address,uint256,address,string,uint256,address,uint128,uint128,bytes32))
           handler: handleTokensMintedWithSignature
         - event: Transfer(indexed address,indexed address,indexed uint256)
+          topic0: "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
           handler: handleTransfer
   - kind: ethereum
     name: ERC1155Drop
@@ -112,9 +111,6 @@ templates:
       abis:
         - name: ERC1155Drop
           file: ./abis/ERC1155Drop.json
-      callHandlers:
-        - function: initialize(address,string,string,string,address[],address,address,uint128,uint128,address)
-          handler: handleERC1155DropInitialized
       eventHandlers:
         - event: TokensClaimed(indexed uint256,indexed uint256,indexed
             address,address,uint256)
@@ -144,9 +140,6 @@ templates:
       abis:
         - name: ERC1155Token
           file: ./abis/ERC1155Token.json
-      callHandlers:
-        - function: initialize(address,string,string,string,address[],address,address,uint128,uint128,address)
-          handler: handleERC1155TokenInitialized
       eventHandlers:
         - event: ERC1155TokenTokensMinted(indexed address,indexed uint256,string,uint256)
           handler: handleERC1155TokenTokensMinted
@@ -177,9 +170,6 @@ templates:
       abis:
         - name: ERC721Drop
           file: ./abis/ERC721Drop.json
-      callHandlers:
-        - function: initialize(address,string,string,string,address[],address,address,uint128,uint128,address)
-          handler: handleERC721DropInitialized
       eventHandlers:
         - event: NFTRevealed(uint256,string)
           handler: handleNFTRevealed

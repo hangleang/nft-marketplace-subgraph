@@ -1,4 +1,4 @@
-export const ERC1155Drop = 'ERC1155Drop'; 
-export const ERC1155Token = 'ERC1155Token'; 
-export const ERC721Drop = 'ERC721Drop'; 
-export const ERC721Token = 'ERC721Token';
+export const ERC1155_DROP = 'ERC1155Drop'; 
+export const ERC1155_TOKEN = 'ERC1155Token'; 
+export const ERC721_DROP = 'ERC721Drop'; 
+export const ERC721_TOKEN = 'ERC721Token';
