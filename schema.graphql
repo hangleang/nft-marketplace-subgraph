@@ -26,14 +26,14 @@ type Collection @entity {
   # metadata
   metadataURI: String!
   title: String!
-  description: String!
+  description: String
   featuredImage: String!
   bannerImage: String
-  traits: [CollectionTrait!]! @derivedFrom(field: "collection")
-
+  externalLink: String
+  # traits: [CollectionTrait!] @derivedFrom(field: "collection")
   # media: CollectionMedia
-  statistics: CollectionStats
 
+  statistics: CollectionStats!
   activities: [Activity!]! @derivedFrom(field: "collection")
   createdAt: BigInt! 
   updatedAt: BigInt!
@@ -47,10 +47,11 @@ type Token @entity {
 
   # metadata
   tokenURI: String!
-  name: String
+  name: String!
   description: String
-  contentURI: String
-  properties: [Property!]! @derivedFrom(field: "token")
+  content: String!
+  externalLink: String
+  # properties: [Property!] @derivedFrom(field: "token")
 
   activities: [Activity!]! @derivedFrom(field: "token")
   createdAt: BigInt!
@@ -82,7 +83,7 @@ type Listing @entity {
 
 # event-based entities
 
-type Offer @entity {
+type Offer @entity(immutable: true) {
   id: ID!
   listing: Listing!
   offeror: User!
@@ -97,7 +98,7 @@ type Offer @entity {
   timestamp: BigInt!
 }
 
-type Sale @entity {
+type Sale @entity(immutable: true) {
   id: ID!
   listing: Listing!
   seller: User!
@@ -110,38 +111,30 @@ type Sale @entity {
   timestamp: BigInt!
 }
 
-type Activity @entity {
+type Activity @entity(immutable: true) {
   id: ID!
   from: User
   to: User
   collection: Collection
   token: Token
   activityType: ActivityType!
+  currency: Bytes
   price: BigInt
   quantity: BigInt
 
   # transaction
-  txHash: Bytes!
-  blockHash: Bytes!
+  txHash: String!
+  blockHash: String!
   timestamp: BigInt!
 }
 
 # misc
 
-type CollectionTrait @entity {
+type Balance @entity {
   id: ID!
-  collection: Collection!
-  attribute: String!
-  values: [String!]!
-}
-
-type CollectionMedia @entity {
-  id: ID!
-  collection: Collection!
-  website: String
-  telegram: String
-  twitter: String
-  discord: String
+  token: Token!
+  owner: User!
+  quantity: BigInt!
 }
 
 type CollectionStats @entity {
@@ -154,19 +147,28 @@ type CollectionStats @entity {
   averagePrice: BigInt!
 }
 
-type Balance @entity {
-  id: ID!
-  token: Token!
-  owner: User!
-  quantity: BigInt!
-}
+# type CollectionMedia @entity {
+#   id: ID!
+#   collection: Collection!
+#   website: String
+#   telegram: String
+#   twitter: String
+#   discord: String
+# }
 
-type Property @entity {
-  id: ID!
-  token: Token!
-  attribute: String!
-  value: String!
-}
+# type CollectionTrait @entity{
+#   id: ID!
+#   collection: Collection!
+#   attribute: String!
+#   values: [String!]!
+# }
+
+# type Property @entity {
+#   id: ID!
+#   token: Token!
+#   attribute: String!
+#   value: String!
+# }
 
 # types
 
@@ -189,8 +191,72 @@ enum ActivityType {
   Transferred,
   List,
   MakeOffer,
-  Sold
+  Sold,
   UpdateListing,
   CloseAuction,
   Unlist,
 }
+
+# fullTextSearch
+type _Schema_
+
+@fulltext(
+  name: "userSearch"
+  language: en
+  algorithm: proximityRank
+  include: [
+    {
+      entity: "User",
+      fields: [
+        { name: "id" }
+      ]
+    }
+  ]
+)
+
+@fulltext(
+  name: "collectionsSearch"
+  language: en
+  algorithm: proximityRank
+  include: [
+    {
+      entity: "Collection",
+      fields: [
+        { name: "id" },
+        { name: "title" },
+        { name: "description" },
+      ]
+    }
+  ]
+)
+
+@fulltext(
+  name: "itemSearch"
+  language: en
+  algorithm: proximityRank
+  include: [
+    {
+      entity: "Token",
+      fields: [
+        { name: "id" },
+        { name: "name" },
+        { name: "description" },
+      ]
+    }
+  ]
+)
+
+@fulltext(
+  name: "activitySearch"
+  language: en
+  algorithm: proximityRank
+  include: [
+    {
+      entity: "Activity",
+      fields: [
+        { name: "txHash" },
+        { name: "blockHash" },
+      ]
+    }
+  ]
+)

@@ -1,0 +1,10 @@
+export const CreateCollection = 'CreateCollection';
+export const Claimed = 'Claimed';
+export const Minted = 'Minted';
+export const Transferred = 'Transferred';
+export const List = 'List';
+export const MakeOffer = 'MakeOffer';
+export const Sold = 'Sold';
+export const UpdateListing = 'UpdateListing';
+export const CloseAuction = 'CloseAuction';
+export const Unlist = 'Unlist';
