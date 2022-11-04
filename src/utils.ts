@@ -19,3 +19,9 @@ export function URIToCID(uri: string): string {
 export function generateUID(keys: string[], sep: string = "-"): string {
     return keys.join(sep);
 }
+
+export function getString(object: TypedMap<string, JSONValue>, key: string): string | null {
+    const value = object.get(key);
+    if (!value) return null;
+    return value.toString();
+}
