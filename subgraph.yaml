@@ -7,11 +7,11 @@ features:
 dataSources:
   - kind: ethereum
     name: Marketplace
-    network: mumbai
+    network: goerli
     source:
       abi: Marketplace
-      address: "0xC10c4A2F88924222fB33B048b494318cdE757DB8"
-      startBlock: 28851303
+      address: "0xd9a5fA95E554B124F07c0646a0eACAd9e00e06D2"
+      startBlock: 7925786
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -47,11 +47,11 @@ dataSources:
           handler: handleNewSale
   - kind: ethereum
     name: ContractFactory
-    network: mumbai
+    network: goerli
     source:
       abi: ContractFactory
       address: "0xe22037363DCb370C7660EC80E1634D3eBaC48DB7"
-      startBlock: 28851285
+      startBlock: 7847946
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -69,7 +69,7 @@ dataSources:
 templates:
   - kind: ethereum
     name: ERC721Token
-    network: mumbai
+    network: goerli
     source:
       abi: ERC721Token
     mapping:
@@ -96,7 +96,7 @@ templates:
           handler: handleTransfer
   - kind: ethereum
     name: ERC1155Drop
-    network: mumbai
+    network: goerli
     source:
       abi: ERC1155Drop
     mapping:
@@ -125,7 +125,7 @@ templates:
           handler: handleTransferSingle
   - kind: ethereum
     name: ERC1155Token
-    network: mumbai
+    network: goerli
     source:
       abi: ERC1155Token
     mapping:
@@ -155,7 +155,7 @@ templates:
           handler: handleERC1155TokenTransferSingle
   - kind: ethereum
     name: ERC721Drop
-    network: mumbai
+    network: goerli
     source:
       abi: ERC721Drop
     mapping:

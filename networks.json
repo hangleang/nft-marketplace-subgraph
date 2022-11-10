@@ -8,5 +8,15 @@
       "address": "0xe22037363DCb370C7660EC80E1634D3eBaC48DB7",
       "startBlock": 28851285
     }
+  },
+  "goerli": {
+    "Marketplace": {
+      "address": "0xd9a5fA95E554B124F07c0646a0eACAd9e00e06D2",
+      "startBlock": 7925786
+    },
+    "ContractFactory": {
+      "address": "0xe22037363DCb370C7660EC80E1634D3eBaC48DB7",
+      "startBlock": 7847946
+    }
   }
 }

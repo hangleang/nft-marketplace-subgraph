@@ -1,7 +1,8 @@
 import { Address, BigInt } from "@graphprotocol/graph-ts";
 import { Balance, Collection, Token } from "../../generated/schema";
-import { NULL_ADDRESS } from "../constants";
+import { NULL_ADDRESS, ZERO_BIGINT } from "../constants";
 import { generateUID } from "../utils";
+import { createOrLoadUser } from "./user";
 
 export function createOrUpdateToken(tokenUID: string, currentTimestamp: BigInt): Token {
     let token = Token.load(tokenUID);
@@ -13,37 +14,35 @@ export function createOrUpdateToken(tokenUID: string, currentTimestamp: BigInt):
     return token;
 }
 
-export function createOrUpdateTokenBalance(tokenUID: string, owner: Address, quantity: BigInt): void {
-    const tokenBalanceUID = generateUID([tokenUID, owner.toHex()])
+export function createOrLoadTokenBalance(tokenUID: string, owner: Address): Balance {
+    const operator = createOrLoadUser(owner);
+    const tokenBalanceUID = generateUID([tokenUID, operator.id])
     let tokenBalance = Balance.load(tokenBalanceUID)
 
     if (!tokenBalance) {
         tokenBalance = new Balance(tokenBalanceUID);
         tokenBalance.token = tokenUID;
-        tokenBalance.owner = owner.toHex();
+        tokenBalance.quantity = ZERO_BIGINT;
+        tokenBalance.owner = operator.id;
     }
-    tokenBalance.quantity = tokenBalance.quantity.plus(quantity);
+    return tokenBalance;
+}
+
+export function createOrUpdateTokenBalance(tokenUID: string, owner: Address, quantity: BigInt, isAddUp: bool): void {
+    const tokenBalance = createOrLoadTokenBalance(tokenUID, owner);
+    if (isAddUp) {
+        tokenBalance.quantity = tokenBalance.quantity.plus(quantity);
+    } else {
+        tokenBalance.quantity = tokenBalance.quantity.minus(quantity);
+    }
     tokenBalance.save()
 }
 
 export function transferTokenBalance(tokenUID: string, from: Address, to: Address, quantity: BigInt): void {
     if (from == NULL_ADDRESS) return;
-
-    const fromBalance = Balance.load(generateUID([tokenUID, from.toHex()]));
-    if (fromBalance) {
-        fromBalance.quantity = fromBalance.quantity.minus(quantity);
-        fromBalance.save();
-    }
-
-    const toBalanceUID = generateUID([tokenUID, to.toHex()])
-    let toBalance = Balance.load(toBalanceUID);
-    if (!toBalance) {
-        toBalance = new Balance(toBalanceUID);
-        toBalance.token = tokenUID;
-        toBalance.owner = to.toHex();
-    }
-    toBalance.quantity = toBalance.quantity.plus(quantity);
-    toBalance.save()
+    
+    createOrUpdateTokenBalance(tokenUID, from, quantity, false);
+    createOrUpdateTokenBalance(tokenUID, to, quantity, true);
 }
 
 export function generateTokenName(collectionAddress: string, tokenID: BigInt): string {

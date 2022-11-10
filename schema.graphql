@@ -1,4 +1,4 @@
-type Marketplace @entity {
+type Count @entity {
   id: ID!
   collectionTotal: Int!
   salesTotal: Int!
