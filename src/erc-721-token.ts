@@ -3,56 +3,77 @@ import {
   TokensMintedWithSignature as TokensMintedWithSignatureEvent,
   Transfer as TransferEvent
 } from "../generated/templates/ERC721Token/ERC721Token"
+import { Address, BigInt } from "@graphprotocol/graph-ts";
 import { Attribute, Token } from "../generated/schema"
 import { NULL_ADDRESS, ONE_BIGINT } from "./constants";
-import * as activities from "./constants/activities";
 import { generateUID, getString, loadContentFromURI } from "./utils";
 import { createOrUpdateToken, createOrUpdateTokenBalance, generateTokenName, transferTokenBalance } from "./modules/token";
 import { createActivity } from "./modules/activity";
-import { Address, BigInt } from "@graphprotocol/graph-ts";
+
+import * as activities from "./constants/activities";
 
 export function handleTokensMinted(event: TokensMintedEvent): void {
+  // init local vars from event params
+  const currentBlock = event.block;
+  const recipient = event.params.mintedTo;
+  const tokenID = event.params.tokenIdMinted;
+  const uri = event.params.uri;
+
+  // generate token entity, get the instance for create MINTED activity
   const token = _handleMint(
-    event.block.timestamp,
+    currentBlock.timestamp,
     event.address,
-    event.params.mintedTo,
-    event.params.tokenIdMinted,
-    event.params.uri
+    recipient,
+    tokenID,
+    uri
   );
 
   // create activity entity
-  createActivity(activities.MINTED, event.block, event.transaction, token, null, null, event.params.mintedTo, ONE_BIGINT);
+  createActivity(activities.MINTED, currentBlock, event.transaction, token, null, null, recipient, ONE_BIGINT);
 }
 
 export function handleTokensMintedWithSignature(
   event: TokensMintedWithSignatureEvent
 ): void {
+  // init local vars from event params
+  const currentBlock = event.block;
+  const recipient = event.params.mintedTo;
+  const tokenID = event.params.tokenIdMinted;
+  const uri = event.params.mintRequest.uri;
+
+  // generate token entity, get the instance for create MINTED activity
   const token = _handleMint(
-    event.block.timestamp,
+    currentBlock.timestamp,
     event.address,
-    event.params.mintedTo,
-    event.params.tokenIdMinted,
-    event.params.mintRequest.uri
+    recipient,
+    tokenID,
+    uri
   );
 
   // create activity entity
   const signer = event.params.signer;
   const currency = event.params.mintRequest.currency;
   const price = event.params.mintRequest.price;
-  createActivity(activities.MINTED, event.block, event.transaction, token, null, signer, event.params.mintedTo, ONE_BIGINT, currency, price);
+  createActivity(activities.MINTED, currentBlock, event.transaction, token, null, signer, recipient, ONE_BIGINT, currency, price);
 }
 
 export function handleTransfer(event: TransferEvent): void {
-  if (event.params.tokenId.toString() == '' || event.params.from == NULL_ADDRESS) return;
+  // init local vars from event params
+  const from = event.params.from;
+  const to = event.params.to;
+  const tokenID = event.params.tokenId.toString();
 
-  const tokenUID = generateUID([event.address.toHex(), event.params.tokenId.toString()], "/")
-  transferTokenBalance(tokenUID, event.params.from, event.params.to, ONE_BIGINT);
+  // check if no tokenID or mint transaction, return
+  if (tokenID == '' || from == NULL_ADDRESS) return;
 
-  // create activity entity
+  // check if token entity is exists, then update both parties token balances
+  const tokenUID = generateUID([event.address.toHex(), tokenID], "/");
   const token = Token.load(tokenUID);
   if (!token) return;
-  createActivity(activities.TRANSFERRED, event.block, event.transaction, token, null, null, null);
-  token.save();
+  transferTokenBalance(tokenUID, from, to, ONE_BIGINT);
+
+  // create activity entity
+  createActivity(activities.TRANSFERRED, event.block, event.transaction, token, null, from, to);
 }
 
 function _handleMint(currentTimestamp: BigInt, collection: Address, recipient: Address, tokenID: BigInt, tokenURI: string): Token {

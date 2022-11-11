@@ -15,15 +15,15 @@ export function createOrUpdateToken(tokenUID: string, currentTimestamp: BigInt):
 }
 
 export function createOrLoadTokenBalance(tokenUID: string, owner: Address): Balance {
-    const operator = createOrLoadUser(owner);
-    const tokenBalanceUID = generateUID([tokenUID, operator.id])
+    const tokenBalanceUID = generateUID([tokenUID, owner.toHex()])
     let tokenBalance = Balance.load(tokenBalanceUID)
 
     if (!tokenBalance) {
         tokenBalance = new Balance(tokenBalanceUID);
         tokenBalance.token = tokenUID;
         tokenBalance.quantity = ZERO_BIGINT;
-        tokenBalance.owner = operator.id;
+        tokenBalance.owner = owner.toHex();
+        createOrLoadUser(owner);
     }
     return tokenBalance;
 }

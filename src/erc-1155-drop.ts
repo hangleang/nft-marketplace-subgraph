@@ -1,5 +1,4 @@
 import {
-  InitializeCall,
   TokensClaimed as TokensClaimedEvent,
   TokensLazyMinted as TokensLazyMintedEvent,
   TransferBatch as TransferBatchEvent,
@@ -9,11 +8,6 @@ import {
   Token,
   Collection
 } from "../generated/schema"
-
-export function handleERC1155DropInitialized(
-  call: InitializeCall
-): void {
-}
 
 export function handleTokensClaimed(event: TokensClaimedEvent): void {
 

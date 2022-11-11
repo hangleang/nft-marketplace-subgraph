@@ -1,5 +1,4 @@
 import {
-  InitializeCall,
   NFTRevealed as NFTRevealedEvent,
   ERC721DropTokensClaimed as ERC721DropTokensClaimedEvent,
   ERC721DropTokensLazyMinted as ERC721DropTokensLazyMintedEvent,
@@ -8,11 +7,6 @@ import {
 import {
   Token, Collection
 } from "../generated/schema"
-
-export function handleERC721DropInitialized(
-  call: InitializeCall
-): void {
-}
 
 export function handleNFTRevealed(event: NFTRevealedEvent): void {
 
