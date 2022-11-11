@@ -73,6 +73,7 @@ function _handleMint(currentTimestamp: BigInt, collection: Address, recipient: A
     token.description = getString(content, "description");
     token.content = contentURI ? contentURI : "";
     token.externalURL = getString(content, "external_url");
+    token.fallbackURL = getString(content, "fallback_url");
 
     // get attributes link to this token
     const attributes = content.get("attributes");

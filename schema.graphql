@@ -25,11 +25,12 @@ type Collection @entity {
 
   # metadata
   metadataURI: String!
-  title: String!
+  name: String!
   description: String
   featuredImage: String
   bannerImage: String
   externalLink: String
+  fallbackURL: String
   # traits: [CollectionTrait!] @derivedFrom(field: "collection")
   # media: CollectionMedia
 
@@ -51,6 +52,7 @@ type Token @entity {
   description: String
   content: String!
   externalURL: String
+  fallbackURL: String
   attributes: [Attribute!] @derivedFrom(field: "token")
 
   activities: [Activity!]! @derivedFrom(field: "token")
@@ -223,7 +225,7 @@ type _Schema_
       entity: "Collection",
       fields: [
         { name: "id" },
-        { name: "title" },
+        { name: "name" },
         { name: "description" },
       ]
     }

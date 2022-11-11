@@ -1,6 +1,6 @@
 import { Address, BigInt } from "@graphprotocol/graph-ts";
 import { Balance, Collection, Token } from "../../generated/schema";
-import { NULL_ADDRESS, ZERO_BIGINT } from "../constants";
+import { ZERO_BIGINT } from "../constants";
 import { generateUID } from "../utils";
 import { createOrLoadUser } from "./user";
 
@@ -47,7 +47,7 @@ export function generateTokenName(collectionAddress: Address, tokenID: BigInt): 
     let collectionName: string;
     const collection = Collection.load(collectionAddress.toHex());
     if (collection) {
-      collectionName = collection.title;
+      collectionName = collection.name;
     } else {
       collectionName = "Untitled Collection";
     }

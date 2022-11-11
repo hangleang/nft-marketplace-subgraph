@@ -75,14 +75,15 @@ export function handleProxyDeployed(call: DeployProxyCall): void {
   // fetch metadata from IPFS URI, then set metadata fields
   const content = loadContentFromURI(contractURI);
   if (content) {
-    const title = getString(content, "title")
-    collection.title = title ? title : contractName;
+    const name = getString(content, "name");
+    collection.name = name ? name : contractName;
     collection.description = getString(content, "description");
-    collection.featuredImage = getString(content, "featuredImage");;
-    collection.bannerImage = getString(content, "bannerImage");
-    collection.externalLink = getString(content, "externalLink");
+    collection.featuredImage = getString(content, "image");;
+    collection.bannerImage = getString(content, "banner_image");
+    collection.externalLink = getString(content, "external_link");
+    collection.fallbackURL = getString(content, "fallback_url");
   } else {
-    collection.title = contractName; 
+    collection.name = contractName; 
   }
 
   const statsUID = generateUID([contractAddress.toHex(), STATS_POSTFIX]);
