@@ -89,6 +89,7 @@ export function handleProxyDeployed(call: DeployProxyCall): void {
   collection.statistics = statsUID
   collection.createdAt = currentTimestamp;
   collection.updatedAt = currentTimestamp;
+  collection.save()
 
   let stats = new CollectionStats(statsUID)
   stats.collection = contractAddress.toHex();
@@ -102,5 +103,4 @@ export function handleProxyDeployed(call: DeployProxyCall): void {
   // init create collection activity entity
   createActivity(activities.CREATE_COLLECTION, call.block, call.transaction, null, contractAddress, defaultAdmin, null);
   buildCountFromCollection();
-  collection.save()
 } 

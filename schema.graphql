@@ -50,8 +50,8 @@ type Token @entity {
   name: String!
   description: String
   content: String!
-  externalLink: String
-  # properties: [Property!] @derivedFrom(field: "token")
+  externalURL: String
+  attributes: [Attribute!] @derivedFrom(field: "token")
 
   activities: [Activity!]! @derivedFrom(field: "token")
   createdAt: BigInt!
@@ -163,12 +163,12 @@ type CollectionStats @entity {
 #   values: [String!]!
 # }
 
-# type Property @entity {
-#   id: ID!
-#   token: Token!
-#   attribute: String!
-#   value: String!
-# }
+type Attribute @entity {
+  id: ID!
+  token: Token!
+  key: String!
+  value: String!
+}
 
 # types
 

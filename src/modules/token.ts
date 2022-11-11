@@ -39,15 +39,13 @@ export function createOrUpdateTokenBalance(tokenUID: string, owner: Address, qua
 }
 
 export function transferTokenBalance(tokenUID: string, from: Address, to: Address, quantity: BigInt): void {
-    if (from == NULL_ADDRESS) return;
-    
     createOrUpdateTokenBalance(tokenUID, from, quantity, false);
     createOrUpdateTokenBalance(tokenUID, to, quantity, true);
 }
 
-export function generateTokenName(collectionAddress: string, tokenID: BigInt): string {
+export function generateTokenName(collectionAddress: Address, tokenID: BigInt): string {
     let collectionName: string;
-    const collection = Collection.load(collectionAddress);
+    const collection = Collection.load(collectionAddress.toHex());
     if (collection) {
       collectionName = collection.title;
     } else {

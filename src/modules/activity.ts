@@ -11,11 +11,11 @@ export function createActivity(
     collection: Address | null,
     from: Address | null,
     to: Address | null, 
-    quantity: BigInt = ONE_BIGINT, 
+    quantity: BigInt = ZERO_BIGINT, 
     currency: Bytes = NULL_ADDRESS,
     price: BigInt = ZERO_BIGINT
 ): void {
-    let activity = new Activity(generateUID([tx.hash.toHex(), tx.nonce.toString()]));
+    let activity = new Activity(generateUID([tx.hash.toHex(), tx.index.toString()]));
     activity.activityType = type;
     activity.txHash = tx.hash.toHex();
     activity.blockHash = block.hash.toHex();
