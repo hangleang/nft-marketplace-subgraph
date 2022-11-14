@@ -171,7 +171,7 @@ templates:
         - name: ERC721Drop
           file: ./abis/ERC721Drop.json
       eventHandlers:
-        - event: NFTRevealed(uint256,string)
+        - event: NFTRevealed(uint256,uint256,string)
           handler: handleNFTRevealed
         - event: ERC721DropTokensClaimed(indexed uint256,indexed address,indexed
             address,uint256,uint256)

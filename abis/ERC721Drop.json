@@ -113,6 +113,12 @@
       {
         "indexed": false,
         "internalType": "uint256",
+        "name": "startTokenId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
         "name": "endTokenId",
         "type": "uint256"
       },

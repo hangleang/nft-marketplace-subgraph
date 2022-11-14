@@ -10,11 +10,9 @@ import {
 } from "../generated/schema"
 
 export function handleTokensClaimed(event: TokensClaimedEvent): void {
-
 }
 
 export function handleTokensLazyMinted(event: TokensLazyMintedEvent): void {
-
 }
 
 export function handleTransferBatch(event: TransferBatchEvent): void {

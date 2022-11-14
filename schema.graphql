@@ -6,10 +6,12 @@ type Count @entity {
 
 type User @entity {
   id: ID! # user address
-  tokens: [Balance!]! @derivedFrom(field: "owner")
-  listings: [Listing!]! @derivedFrom(field: "owner")
+  created: [Token!]! @derivedFrom(field: "creator")
+  owned: [TokenOwnership!]! @derivedFrom(field: "owner")
+  onsale: [Listing!]! @derivedFrom(field: "owner")
   collections: [Collection!]! @derivedFrom(field: "creator")
   
+  # statistics
   sales: BigInt!
   purchases: BigInt!
   highestSale: BigInt 
@@ -44,7 +46,8 @@ type Token @entity {
   id: ID!
   collection: Collection!
   tokenId: BigInt!
-  balances: [Balance!]! @derivedFrom(field: "token")
+  creator: User!
+  owners: [TokenOwnership!]! @derivedFrom(field: "token")
 
   # metadata
   tokenURI: String!
@@ -54,6 +57,9 @@ type Token @entity {
   externalURL: String
   fallbackURL: String
   attributes: [Attribute!] @derivedFrom(field: "token")
+
+  # misc
+  isLazyMinted: Boolean!
 
   activities: [Activity!]! @derivedFrom(field: "token")
   createdAt: BigInt!
@@ -132,7 +138,7 @@ type Activity @entity(immutable: true) {
 
 # misc
 
-type Balance @entity {
+type TokenOwnership @entity {
   id: ID!
   token: Token!
   owner: User!
