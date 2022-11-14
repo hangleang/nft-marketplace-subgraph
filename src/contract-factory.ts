@@ -78,7 +78,7 @@ export function handleProxyDeployed(call: DeployProxyCall): void {
     const name = getString(content, "name");
     collection.name = name ? name : contractName;
     collection.description = getString(content, "description");
-    collection.featuredImage = getString(content, "image");;
+    collection.featuredImage = getString(content, "image");
     collection.bannerImage = getString(content, "banner_image");
     collection.externalLink = getString(content, "external_link");
     collection.fallbackURL = getString(content, "fallback_url");

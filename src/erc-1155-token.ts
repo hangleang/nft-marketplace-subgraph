@@ -88,7 +88,7 @@ export function handleERC1155TokenTransferBatch(
     const tokenUID = generateUID([event.address.toHex(), tokenID.toString()], ":");
     const token = Token.load(tokenUID);
     if (!token) return;
-    transferTokenBalance(tokenUID, from, to, ONE_BIGINT);
+    transferTokenBalance(tokenUID, from, to, value);
 
     // create activity entity
     createActivity(activities.TRANSFERRED, event.block, event.transaction, token, null, from, to, value);
