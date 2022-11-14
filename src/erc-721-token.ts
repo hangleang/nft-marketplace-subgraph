@@ -70,7 +70,7 @@ export function handleTransfer(event: TransferEvent): void {
   if (tokenID == '' || from == NULL_ADDRESS) return;
 
   // check if token entity is exists, then update both parties token balances
-  const tokenUID = generateUID([event.address.toHex(), tokenID], "/");
+  const tokenUID = generateUID([event.address.toHex(), tokenID], ":");
   const token = Token.load(tokenUID);
   if (!token) return;
   transferTokenBalance(tokenUID, from, to, ONE_BIGINT);
@@ -80,7 +80,7 @@ export function handleTransfer(event: TransferEvent): void {
 }
 
 function _handleMint(currentTimestamp: BigInt, collection: Address, creator: Address, recipient: Address, tokenID: BigInt, tokenURI: string): Token {
-  const tokenUID = generateUID([collection.toHex(), tokenID.toString()], "/");
+  const tokenUID = generateUID([collection.toHex(), tokenID.toString()], ":");
 
   // init token entity
   let token = createOrUpdateToken(tokenUID, currentTimestamp);
@@ -107,9 +107,10 @@ function _handleMint(currentTimestamp: BigInt, collection: Address, creator: Add
       const attributesEntries = attributes.toObject().entries;
       for (let i = 0; i < attributesEntries.length; i++) {
         const entry = attributesEntries[i];
-        const attribute = new Attribute(generateUID([tokenUID, entry.key], "/"))
+        const key = entry.key.trim();
+        const attribute = new Attribute(generateUID([tokenUID, key], ":"))
         attribute.token = tokenUID;
-        attribute.key = entry.key.trim();
+        attribute.key = key;
         attribute.value = entry.value.toString();
         attribute.save();
       }

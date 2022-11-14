@@ -23,7 +23,7 @@ export function handleNFTRevealed(event: NFTRevealedEvent): void {
   // const revealedURI = event.params.revealedURI;
 
   for(let tokenID = startTokenID; tokenID <= endTokenID; tokenID.plus(ONE_BIGINT)) {
-    const tokenUID = generateUID([collection.toHex(), tokenID.toString()], "/");
+    const tokenUID = generateUID([collection.toHex(), tokenID.toString()], ":");
     let token = Token.load(tokenUID);
 
     if (token) {
@@ -48,7 +48,7 @@ export function handleERC721DropTokensClaimed(
   const endTokenID = startTokenID.plus(quantity);
 
   for(let tokenID = startTokenID; tokenID <= endTokenID; tokenID.plus(ONE_BIGINT)) {
-    const tokenUID = generateUID([collection.toHex(), tokenID.toString()], "/");
+    const tokenUID = generateUID([collection.toHex(), tokenID.toString()], ":");
     const token = Token.load(tokenUID);
 
     if (token) {
@@ -99,7 +99,7 @@ export function handleERC721DropTransfer(event: ERC721DropTransferEvent): void {
   if (tokenID == '' || from == NULL_ADDRESS) return;
 
   // check if token entity is exists, then update both parties token balances
-  const tokenUID = generateUID([event.address.toHex(), tokenID], "/");
+  const tokenUID = generateUID([event.address.toHex(), tokenID], ":");
   const token = Token.load(tokenUID);
   if (!token) return;
   transferTokenBalance(tokenUID, from, to, ONE_BIGINT);
@@ -109,7 +109,7 @@ export function handleERC721DropTransfer(event: ERC721DropTransferEvent): void {
 }
 
 function _handleLazyMint(currentTimestamp: BigInt, collection: Address, creator: Address, _baseURI: string, tokenID: BigInt): void {
-  const tokenUID = generateUID([collection.toHex(), tokenID.toString()], "/");
+  const tokenUID = generateUID([collection.toHex(), tokenID.toString()], ":");
   
   // init token entity
   let token = createOrUpdateToken(tokenUID, currentTimestamp);
@@ -143,9 +143,10 @@ function _updateTokenMetadata(collection: Address, token: Token, tokenID: BigInt
       const attributesEntries = attributes.toObject().entries;
       for (let i = 0; i < attributesEntries.length; i++) {
         const entry = attributesEntries[i];
-        const attribute = new Attribute(generateUID([token.id, entry.key], "/"))
+        const key = entry.key.trim();
+        const attribute = new Attribute(generateUID([token.id, key], ":"))
         attribute.token = token.id;
-        attribute.key = entry.key.trim();
+        attribute.key = key;
         attribute.value = entry.value.toString();
         attribute.save();
       }
