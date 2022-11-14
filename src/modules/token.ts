@@ -1,5 +1,5 @@
 import { Address, BigInt } from "@graphprotocol/graph-ts";
-import { Balance, Collection, Token } from "../../generated/schema";
+import { TokenOwnership, Collection, Token } from "../../generated/schema";
 import { ZERO_BIGINT } from "../constants";
 import { generateUID } from "../utils";
 import { createOrLoadUser } from "./user";
@@ -14,18 +14,18 @@ export function createOrUpdateToken(tokenUID: string, currentTimestamp: BigInt):
     return token;
 }
 
-export function createOrLoadTokenBalance(tokenUID: string, owner: Address): Balance {
-    const tokenBalanceUID = generateUID([tokenUID, owner.toHex()])
-    let tokenBalance = Balance.load(tokenBalanceUID)
+export function createOrLoadTokenBalance(tokenUID: string, owner: Address): TokenOwnership {
+    const tokenOwnershipUID = generateUID([tokenUID, owner.toHex()])
+    let tokenOwnership = TokenOwnership.load(tokenOwnershipUID)
 
-    if (!tokenBalance) {
-        tokenBalance = new Balance(tokenBalanceUID);
-        tokenBalance.token = tokenUID;
-        tokenBalance.quantity = ZERO_BIGINT;
-        tokenBalance.owner = owner.toHex();
+    if (!tokenOwnership) {
+        tokenOwnership = new TokenOwnership(tokenOwnershipUID);
+        tokenOwnership.token = tokenUID;
+        tokenOwnership.owner = owner.toHex();
+        tokenOwnership.quantity = ZERO_BIGINT;
         createOrLoadUser(owner);
     }
-    return tokenBalance;
+    return tokenOwnership;
 }
 
 export function createOrUpdateTokenBalance(tokenUID: string, owner: Address, quantity: BigInt, isAddUp: bool): void {

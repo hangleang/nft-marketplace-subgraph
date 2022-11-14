@@ -15,6 +15,7 @@ import * as activities from "./constants/activities";
 export function handleTokensMinted(event: TokensMintedEvent): void {
   // init local vars from event params
   const currentBlock = event.block;
+  const signer = event.transaction.from;
   const recipient = event.params.mintedTo;
   const tokenID = event.params.tokenIdMinted;
   const uri = event.params.uri;
@@ -23,13 +24,14 @@ export function handleTokensMinted(event: TokensMintedEvent): void {
   const token = _handleMint(
     currentBlock.timestamp,
     event.address,
+    signer,
     recipient,
     tokenID,
     uri
   );
 
   // create activity entity
-  createActivity(activities.MINTED, currentBlock, event.transaction, token, null, null, recipient, ONE_BIGINT);
+  createActivity(activities.MINTED, currentBlock, event.transaction, token, null, signer, recipient, ONE_BIGINT);
 }
 
 export function handleTokensMintedWithSignature(
@@ -37,6 +39,7 @@ export function handleTokensMintedWithSignature(
 ): void {
   // init local vars from event params
   const currentBlock = event.block;
+  const signer = event.params.signer;
   const recipient = event.params.mintedTo;
   const tokenID = event.params.tokenIdMinted;
   const uri = event.params.mintRequest.uri;
@@ -45,13 +48,13 @@ export function handleTokensMintedWithSignature(
   const token = _handleMint(
     currentBlock.timestamp,
     event.address,
+    signer,
     recipient,
     tokenID,
     uri
   );
 
   // create activity entity
-  const signer = event.params.signer;
   const currency = event.params.mintRequest.currency;
   const price = event.params.mintRequest.price;
   createActivity(activities.MINTED, currentBlock, event.transaction, token, null, signer, recipient, ONE_BIGINT, currency, price);
@@ -76,14 +79,16 @@ export function handleTransfer(event: TransferEvent): void {
   createActivity(activities.TRANSFERRED, event.block, event.transaction, token, null, from, to);
 }
 
-function _handleMint(currentTimestamp: BigInt, collection: Address, recipient: Address, tokenID: BigInt, tokenURI: string): Token {
+function _handleMint(currentTimestamp: BigInt, collection: Address, creator: Address, recipient: Address, tokenID: BigInt, tokenURI: string): Token {
   const tokenUID = generateUID([collection.toHex(), tokenID.toString()], "/");
 
   // init token entity
   let token = createOrUpdateToken(tokenUID, currentTimestamp);
   token.collection = collection.toHex();
+  token.creator = creator.toHex();
   token.tokenId = tokenID;
   token.tokenURI = tokenURI;
+  token.isLazyMinted = false;
 
   // fetch metadata from IPFS URI, then set metadata fields
   const content = loadContentFromURI(tokenURI);
