@@ -4,6 +4,14 @@ import { ZERO_BIGINT } from "../constants";
 import { generateUID } from "../utils";
 import { createOrLoadUser } from "./user";
 
+export function generateTokenUID(collection: Address, tokenID: BigInt): string {
+    return generateUID([collection.toHex(), tokenID.toString()], ":");
+}
+
+export function generateTokenAttributeUID(tokenUID: string, key: string): string {
+    return generateUID([tokenUID, key.trim()], ":")
+}
+
 export function createOrUpdateToken(tokenUID: string, currentTimestamp: BigInt): Token {
     let token = Token.load(tokenUID);
 

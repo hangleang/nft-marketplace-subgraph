@@ -40,11 +40,13 @@ dataSources:
         - event: ListingUpdated(indexed uint256,indexed address)
           handler: handleListingUpdated
         - event: NewOffer(indexed uint256,indexed address,indexed
-            uint8,uint256,uint256,address)
+            uint8,uint256,uint256,address,uint256)
           handler: handleNewOffer
         - event: NewSale(indexed uint256,indexed address,indexed
             address,address,uint256,uint256)
           handler: handleNewSale
+        - event: Upgraded(indexed address)
+          handler: handleUpgraded
   - kind: ethereum
     name: ContractFactory
     network: goerli

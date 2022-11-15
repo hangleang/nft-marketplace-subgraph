@@ -1,17 +1,14 @@
 import { ByteArray, Bytes, ethereum } from "@graphprotocol/graph-ts"; 
-import { ZERO_BIGINT, STATS_POSTFIX } from "./constants";
 import * as collections from "./constants/collections";
 import * as activities from "./constants/activities";
 import * as contract_types from "./constants/contract_types";
 import * as funs_selectors from "./constants/function_selectors";
 
 import { DeployProxyCall } from "../generated/ContractFactory/ContractFactory"
-import { CollectionStats } from "../generated/schema"
-import { generateUID, getString, loadContentFromURI } from "./utils";
-import { createOrUpdateCollection } from "./modules/collection";
+import { getString, loadContentFromURI } from "./utils";
+import { createOrLoadCollectionStats, createOrUpdateCollection, generateCollectionStatsUID } from "./modules/collection";
 import { createActivity } from "./modules/activity";
 import { createOrLoadUser } from "./modules/user";
-import { buildCountFromCollection } from "./modules/count";
 import { ERC721Token, ERC1155Drop, ERC721Drop, ERC1155Token } from "../generated/templates";
 
 export function handleProxyDeployed(call: DeployProxyCall): void {
@@ -86,22 +83,15 @@ export function handleProxyDeployed(call: DeployProxyCall): void {
     collection.name = contractName; 
   }
 
-  const statsUID = generateUID([contractAddress.toHex(), STATS_POSTFIX]);
-  collection.statistics = statsUID
+  // create collection stats entity
+  const statsUID = generateCollectionStatsUID(contractAddress);
+  createOrLoadCollectionStats(contractAddress);
+
+  collection.statistics = statsUID;
   collection.createdAt = currentTimestamp;
   collection.updatedAt = currentTimestamp;
   collection.save()
 
-  let stats = new CollectionStats(statsUID)
-  stats.collection = contractAddress.toHex();
-  stats.volume = ZERO_BIGINT;
-  stats.sales = ZERO_BIGINT;
-  stats.highestSale = ZERO_BIGINT;
-  stats.floorPrice = ZERO_BIGINT;
-  stats.averagePrice = ZERO_BIGINT;
-  stats.save();
-
   // init create collection activity entity
   createActivity(activities.CREATE_COLLECTION, call.block, call.transaction, null, contractAddress, defaultAdmin, null);
-  buildCountFromCollection();
 } 

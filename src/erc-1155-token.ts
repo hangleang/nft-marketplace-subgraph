@@ -5,13 +5,13 @@ import {
   ERC1155TokenTransferSingle as ERC1155TokenTransferSingleEvent,
 } from "../generated/templates/ERC1155Token/ERC1155Token"
 import { Address, BigInt } from "@graphprotocol/graph-ts";
-import { createOrUpdateToken, createOrUpdateTokenBalance, generateTokenName, transferTokenBalance } from "./modules/token";
-import { generateUID, getString, loadContentFromURI } from "./utils";
+import { createOrUpdateToken, createOrUpdateTokenBalance, generateTokenAttributeUID, generateTokenName, generateTokenUID, transferTokenBalance } from "./modules/token";
+import { getString, loadContentFromURI } from "./utils";
 import { createActivity } from "./modules/activity";
 import { Token, Attribute } from "../generated/schema"
 
 import * as activities from "./constants/activities";
-import { NULL_ADDRESS, ONE_BIGINT } from "./constants";
+import { NULL_ADDRESS } from "./constants";
 
 export function handleERC1155TokenTokensMinted(
   event: ERC1155TokenTokensMintedEvent
@@ -85,7 +85,7 @@ export function handleERC1155TokenTransferBatch(
     const value = values[i];
 
     // check if token entity is exists, then update both parties token balances
-    const tokenUID = generateUID([event.address.toHex(), tokenID.toString()], ":");
+    const tokenUID = generateTokenUID(event.address, tokenID);
     const token = Token.load(tokenUID);
     if (!token) return;
     transferTokenBalance(tokenUID, from, to, value);
@@ -101,14 +101,14 @@ export function handleERC1155TokenTransferSingle(
   // init local vars from event params
   const from = event.params.from;
   const to = event.params.to;
-  const tokenID = event.params.id.toString();
+  const tokenID = event.params.id;
   const value = event.params.value;
 
   // check if no tokenID or mint transaction, return
-  if (tokenID == '' || from == NULL_ADDRESS) return;
+  if (tokenID.toString() == '' || from == NULL_ADDRESS) return;
 
   // check if token entity is exists, then update both parties token balances
-  const tokenUID = generateUID([event.address.toHex(), tokenID], ":");
+  const tokenUID = generateTokenUID(event.address, tokenID);
   const token = Token.load(tokenUID);
   if (!token) return;
   transferTokenBalance(tokenUID, from, to, value);
@@ -118,7 +118,7 @@ export function handleERC1155TokenTransferSingle(
 }
 
 function _handleMint(currentTimestamp: BigInt, collection: Address, creator: Address, recipient: Address, tokenID: BigInt, quantity: BigInt, tokenURI: string): Token {
-  const tokenUID = generateUID([collection.toHex(), tokenID.toString()], ":");
+  const tokenUID = generateTokenUID(collection, tokenID);
 
   // init token entity
   let token = createOrUpdateToken(tokenUID, currentTimestamp);
@@ -146,7 +146,7 @@ function _handleMint(currentTimestamp: BigInt, collection: Address, creator: Add
       for (let i = 0; i < attributesEntries.length; i++) {
         const entry = attributesEntries[i];
         const key = entry.key.trim();
-        const attribute = new Attribute(generateUID([tokenUID, key], ":"))
+        const attribute = new Attribute(generateTokenAttributeUID(tokenUID, key))
         attribute.token = tokenUID;
         attribute.key = key;
         attribute.value = entry.value.toString();

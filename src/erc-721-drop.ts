@@ -7,8 +7,8 @@ import {
 } from "../generated/templates/ERC721Drop/ERC721Drop"
 import { Token, Attribute } from "../generated/schema"
 import { NULL_ADDRESS, ONE_BIGINT } from "./constants";
-import { generateUID, getString, loadContentFromURI } from "./utils";
-import { createOrUpdateToken, createOrUpdateTokenBalance, generateTokenName, transferTokenBalance } from "./modules/token";
+import { getString, loadContentFromURI } from "./utils";
+import { createOrUpdateToken, createOrUpdateTokenBalance, generateTokenAttributeUID, generateTokenName, generateTokenUID, transferTokenBalance } from "./modules/token";
 import { createActivity } from "./modules/activity";
 
 import * as activities from "./constants/activities";
@@ -23,7 +23,7 @@ export function handleNFTRevealed(event: NFTRevealedEvent): void {
   // const revealedURI = event.params.revealedURI;
 
   for(let tokenID = startTokenID; tokenID <= endTokenID; tokenID.plus(ONE_BIGINT)) {
-    const tokenUID = generateUID([collection.toHex(), tokenID.toString()], ":");
+    const tokenUID = generateTokenUID(collection, tokenID);
     let token = Token.load(tokenUID);
 
     if (token) {
@@ -48,7 +48,7 @@ export function handleERC721DropTokensClaimed(
   const endTokenID = startTokenID.plus(quantity);
 
   for(let tokenID = startTokenID; tokenID <= endTokenID; tokenID.plus(ONE_BIGINT)) {
-    const tokenUID = generateUID([collection.toHex(), tokenID.toString()], ":");
+    const tokenUID = generateTokenUID(collection, tokenID);
     const token = Token.load(tokenUID);
 
     if (token) {
@@ -93,13 +93,13 @@ export function handleERC721DropTransfer(event: ERC721DropTransferEvent): void {
   // init local vars from event params
   const from = event.params.from;
   const to = event.params.to;
-  const tokenID = event.params.tokenId.toString();
+  const tokenID = event.params.tokenId;
 
   // check if no tokenID or mint transaction, return
-  if (tokenID == '' || from == NULL_ADDRESS) return;
+  if (tokenID.toString() == '' || from == NULL_ADDRESS) return;
 
   // check if token entity is exists, then update both parties token balances
-  const tokenUID = generateUID([event.address.toHex(), tokenID], ":");
+  const tokenUID = generateTokenUID(event.address, tokenID);
   const token = Token.load(tokenUID);
   if (!token) return;
   transferTokenBalance(tokenUID, from, to, ONE_BIGINT);
@@ -109,7 +109,7 @@ export function handleERC721DropTransfer(event: ERC721DropTransferEvent): void {
 }
 
 function _handleLazyMint(currentTimestamp: BigInt, collection: Address, creator: Address, _baseURI: string, tokenID: BigInt): void {
-  const tokenUID = generateUID([collection.toHex(), tokenID.toString()], ":");
+  const tokenUID = generateTokenUID(collection, tokenID);
   
   // init token entity
   let token = createOrUpdateToken(tokenUID, currentTimestamp);
@@ -144,7 +144,7 @@ function _updateTokenMetadata(collection: Address, token: Token, tokenID: BigInt
       for (let i = 0; i < attributesEntries.length; i++) {
         const entry = attributesEntries[i];
         const key = entry.key.trim();
-        const attribute = new Attribute(generateUID([token.id, key], ":"))
+        const attribute = new Attribute(generateTokenAttributeUID(token.id, key));
         attribute.token = token.id;
         attribute.key = key;
         attribute.value = entry.value.toString();

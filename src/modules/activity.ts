@@ -32,12 +32,7 @@ export function createActivity(
     if (to) {
         actualTo = to;
     } else {
-        const txTo = tx.to;
-        if (txTo) {
-            actualTo = txTo;
-        } else {
-            actualTo = NULL_ADDRESS;
-        }
+        actualTo = NULL_ADDRESS;
     }
     activity.from = actualFrom.toHex();
     activity.to = actualTo.toHex();

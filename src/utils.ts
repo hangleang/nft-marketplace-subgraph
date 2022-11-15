@@ -1,4 +1,4 @@
-import { ipfs, json, JSONValue, TypedMap } from "@graphprotocol/graph-ts"
+import { BigDecimal, ipfs, json, JSONValue, TypedMap } from "@graphprotocol/graph-ts"
 
 export function loadContentFromURI(uri: string): TypedMap<string, JSONValue> | null {
     const CID: string = URIToCID(uri);
@@ -25,4 +25,20 @@ export function getString(object: TypedMap<string, JSONValue>, key: string): str
     const value = object.get(key);
     if (!value) return null;
     return value.toString();
+}
+
+export function getMax(left: BigDecimal, right: BigDecimal): BigDecimal {
+    if (left > right) {
+        return left;
+    } else {
+        return right;
+    }
+}
+
+export function getMin(left: BigDecimal, right: BigDecimal): BigDecimal {
+    if (left < right) {
+        return left;
+    } else {
+        return right;
+    }
 }
