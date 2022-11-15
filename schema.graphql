@@ -1,7 +1,9 @@
-type Count @entity {
+type Marketplace @entity {
   id: ID!
-  collectionTotal: Int!
-  salesTotal: Int!
+  version: Int!
+
+  createdAt: BigInt!
+  updatedAt: BigInt!
 }
 
 type User @entity {
@@ -10,12 +12,7 @@ type User @entity {
   owned: [TokenOwnership!]! @derivedFrom(field: "owner")
   onsale: [Listing!]! @derivedFrom(field: "owner")
   collections: [Collection!]! @derivedFrom(field: "creator")
-  
-  # statistics
-  sales: BigInt!
-  purchases: BigInt!
-  highestSale: BigInt 
-  spent: BigDecimal!
+  offers: [Offer!]! @derivedFrom(field: "offeror")
   activities: [Activity!]! @derivedFrom(field: "from")
 }
 
@@ -73,20 +70,21 @@ type Listing @entity {
   listingType: ListingType!
 
   # listing properties
-  startTime: BigInt
-  endTime: BigInt
+  startTime: BigInt!
+  endTime: BigInt!
   quantity: BigInt!
-  currency: Bytes
-  reservePricePerToken: BigInt
-  buyoutPricePerToken: BigInt
-
+  availableQty: BigInt!
+  currency: Bytes!
+  reservePricePerToken: BigInt!
+  buyoutPricePerToken: BigInt!
   offers: [Offer!] @derivedFrom(field: "listing")
-  activeOffer: Offer
   
   createdAt: BigInt!
   updatedAt: BigInt!
   removedAt: BigInt
   soldAt: BigInt
+  closedAt: BigInt
+  isCancelled: Boolean # null, for active status; true, for cancel auction; false, for close auction
 }
 
 # event-based entities
@@ -98,7 +96,7 @@ type Offer @entity(immutable: true) {
 
   quantity: BigInt!
   offerAmount: BigInt! # total amount offer
-  currency: Bytes
+  currency: Bytes!
   expiredTimestamp: BigInt!
 
   # transaction
@@ -110,9 +108,9 @@ type Sale @entity(immutable: true) {
   id: ID!
   listing: Listing!
   seller: User!
-  receiver: User!
-  quantityBought: BigInt
-  totalPaid: BigInt
+  buyer: User!
+  quantityBought: BigInt!
+  totalPaid: BigInt!
 
   # transaction
   txHash: Bytes!
@@ -148,11 +146,12 @@ type TokenOwnership @entity {
 type CollectionStats @entity {
   id: ID!
   collection: Collection!
-  volume: BigInt!
+  listed: BigInt!
   sales: BigInt!
-  highestSale: BigInt!
-  floorPrice: BigInt!
-  averagePrice: BigInt!
+  volume: BigInt!
+  highestSale: BigDecimal!
+  floorPrice: BigDecimal!
+  averagePrice: BigDecimal!
 }
 
 # type CollectionMedia @entity {
