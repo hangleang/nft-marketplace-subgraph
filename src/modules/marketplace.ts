@@ -1,7 +1,7 @@
 import { BigInt } from "@graphprotocol/graph-ts";
 import { Marketplace } from "../../generated/schema";
 
-export const DEFAULT_ID = 'all'
+export const DEFAULT_ID = 'nft-marketplace'
 
 export function createMarketplace(currentTimestamp: BigInt): Marketplace {
     const marketplace = new Marketplace(DEFAULT_ID);
