@@ -61,3 +61,12 @@ export function generateTokenName(collectionAddress: Address, tokenID: BigInt): 
     }
     return generateUID([collectionName, `#${tokenID}`], " ");
 }
+
+export function setTokenDropDetail(tokenUID: string, dropDetailUID: string): void {
+    const token = Token.load(tokenUID);
+
+    if (token) {
+        token.dropDetails = dropDetailUID;
+        token.save();
+    }
+}

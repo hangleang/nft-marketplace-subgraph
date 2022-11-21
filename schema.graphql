@@ -31,7 +31,7 @@ type Collection @entity {
   externalLink: String
   fallbackURL: String
   # traits: [CollectionTrait!] @derivedFrom(field: "collection")
-  # media: CollectionMedia
+  dropDetails: DropDetail
 
   statistics: CollectionStats!
   activities: [Activity!]! @derivedFrom(field: "collection")
@@ -57,6 +57,7 @@ type Token @entity {
 
   # misc
   isLazyMinted: Boolean!
+  dropDetails: DropDetail
 
   activities: [Activity!]! @derivedFrom(field: "token")
   createdAt: BigInt!
@@ -154,14 +155,30 @@ type CollectionStats @entity {
   averagePrice: BigDecimal!
 }
 
-# type CollectionMedia @entity {
-#   id: ID!
-#   collection: Collection!
-#   website: String
-#   telegram: String
-#   twitter: String
-#   discord: String
-# }
+type Attribute @entity {
+  id: ID!
+  token: Token!
+  key: String!
+  value: String!
+}
+
+type DropDetail @entity {
+  id: ID!
+  startClaimConditionID: BigInt!
+  count: Int!
+  supplyClaimed: BigInt!
+  claimConditions: [DropClaimCondition!]! @derivedFrom(field: "drop")
+}
+
+type DropClaimCondition @entity {
+  id: ID!
+  drop: DropDetail!
+  startTimestamp: BigInt!
+  maxClaimableSupply: BigInt!
+  quantityLimit: BigInt!
+  price: BigInt!
+  currency: Bytes!
+}
 
 # type CollectionTrait @entity{
 #   id: ID!
@@ -169,13 +186,6 @@ type CollectionStats @entity {
 #   attribute: String!
 #   values: [String!]!
 # }
-
-type Attribute @entity {
-  id: ID!
-  token: Token!
-  key: String!
-  value: String!
-}
 
 # types
 

@@ -13,6 +13,15 @@ export function createOrUpdateCollection(address: Address, currentTimestamp: Big
   return collection;
 }
 
+export function setCollectionDropDetail(address: Address, dropDetailUID: string): void {
+  const collection = Collection.load(address.toHex());
+
+  if (collection) {
+    collection.dropDetails = dropDetailUID;
+    collection.save();
+  }
+}
+
 export function generateCollectionStatsUID(collection: Address): string {
   return generateUID([collection.toHex(), STATS_POSTFIX])
 }
