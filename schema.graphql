@@ -165,7 +165,7 @@ type Attribute @entity {
 type DropDetail @entity {
   id: ID!
   startClaimConditionID: BigInt!
-  count: Int!
+  count: BigInt!
   supplyClaimed: BigInt!
   claimConditions: [DropClaimCondition!]! @derivedFrom(field: "drop")
 }

@@ -7,11 +7,11 @@ features:
 dataSources:
   - kind: ethereum
     name: Marketplace
-    network: goerli
+    network: mumbai
     source:
       abi: Marketplace
-      address: "0xd9a5fA95E554B124F07c0646a0eACAd9e00e06D2"
-      startBlock: 7925786
+      address: "0xC10c4A2F88924222fB33B048b494318cdE757DB8"
+      startBlock: 28851303
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -49,11 +49,11 @@ dataSources:
           handler: handleUpgraded
   - kind: ethereum
     name: ContractFactory
-    network: goerli
+    network: mumbai
     source:
       abi: ContractFactory
-      address: "0xe22037363DCb370C7660EC80E1634D3eBaC48DB7"
-      startBlock: 7847946
+      address: "0x4Cc625e6d3fB532EC28312Fd52b0495ceCd59556"
+      startBlock: 29275960
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -65,13 +65,13 @@ dataSources:
       abis:
         - name: ContractFactory
           file: ./abis/ContractFactory.json
-      callHandlers:
-        - function: deployProxy(bytes32,bytes)
+      eventHandlers:
+        - event: ProxyDeployed(indexed bytes32,bytes,address,indexed address)
           handler: handleProxyDeployed
 templates:
   - kind: ethereum
     name: ERC721Token
-    network: goerli
+    network: mumbai
     source:
       abi: ERC721Token
     mapping:
@@ -98,7 +98,7 @@ templates:
           handler: handleTransfer
   - kind: ethereum
     name: ERC1155Drop
-    network: goerli
+    network: mumbai
     source:
       abi: ERC1155Drop
     mapping:
@@ -113,9 +113,6 @@ templates:
       abis:
         - name: ERC1155Drop
           file: ./abis/ERC1155Drop.json
-      callHandlers:
-        - function: setClaimConditions(uint256,ClaimCondition[],bool)
-          handler: handleSetClaimConditions
       eventHandlers:
         - event: TokensClaimed(indexed uint256,indexed uint256,indexed
             address,address,uint256)
@@ -128,9 +125,11 @@ templates:
         - event: TransferSingle(indexed address,indexed address,indexed
             address,uint256,uint256)
           handler: handleTransferSingle
+        - event: ClaimConditionsUpdated(uint256,uint256,uint256,bool)
+          handler: handlerClaimConditionsUpdated
   - kind: ethereum
     name: ERC1155Token
-    network: goerli
+    network: mumbai
     source:
       abi: ERC1155Token
     mapping:
@@ -160,7 +159,7 @@ templates:
           handler: handleERC1155TokenTransferSingle
   - kind: ethereum
     name: ERC721Drop
-    network: goerli
+    network: mumbai
     source:
       abi: ERC721Drop
     mapping:
@@ -175,9 +174,6 @@ templates:
       abis:
         - name: ERC721Drop
           file: ./abis/ERC721Drop.json
-      callHandlers:
-        - function: setClaimConditions(ClaimCondition[],bool)
-          handler: handleSetClaimConditions
       eventHandlers:
         - event: NFTRevealed(uint256,uint256,string)
           handler: handleNFTRevealed
@@ -188,3 +184,5 @@ templates:
           handler: handleERC721DropTokensLazyMinted
         - event: ERC721DropTransfer(indexed address,indexed address,indexed uint256)
           handler: handleERC721DropTransfer
+        - event: ERC721DropClaimConditionsUpdated(uint256,uint256,bool)
+          handler: handlerClaimConditionsUpdated

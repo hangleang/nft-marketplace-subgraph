@@ -1,18 +1,19 @@
-import { BigDecimal, ipfs, json, JSONValue, TypedMap } from "@graphprotocol/graph-ts"
+import { BigDecimal, ipfs, json, JSONValue, log, TypedMap } from "@graphprotocol/graph-ts"
 
 export function loadContentFromURI(uri: string): TypedMap<string, JSONValue> | null {
-    const CID: string = URIToCID(uri);
+    const CID: string = URIToIPFSHash(uri);
 
     if (CID && CID.length > 21) {
         const content = ipfs.cat(CID);
     
         if (!content) return null;
+        log.info("content: {}", [content.toString()]);
         return json.fromBytes(content).toObject();
     }
     return null;
 }
 
-export function URIToCID(uri: string): string {
+export function URIToIPFSHash(uri: string): string {
     const cid = uri.replace("ipfs://", "");
     return cid;
 }

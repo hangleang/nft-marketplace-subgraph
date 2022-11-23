@@ -19,7 +19,7 @@ export function createOrLoadDropDetails(uid: string): DropDetail {
     if (!dropDetail) {
         dropDetail = new DropDetail(uid);
         dropDetail.startClaimConditionID = ZERO_BIGINT;
-        dropDetail.count = 0;
+        dropDetail.count = ZERO_BIGINT;
         dropDetail.supplyClaimed = ZERO_BIGINT;
     }
 
