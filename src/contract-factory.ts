@@ -4,19 +4,20 @@ import * as activities from "./constants/activities";
 import * as contract_types from "./constants/contract_types";
 import * as funs_selectors from "./constants/function_selectors";
 
-import { DeployProxyCall } from "../generated/ContractFactory/ContractFactory"
+import { ProxyDeployed } from "../generated/ContractFactory/ContractFactory"
 import { getString, loadContentFromURI } from "./utils";
 import { createOrLoadCollectionStats, createOrUpdateCollection, generateCollectionStatsUID } from "./modules/collection";
 import { createActivity } from "./modules/activity";
 import { createOrLoadUser } from "./modules/user";
 import { ERC721Token, ERC1155Drop, ERC721Drop, ERC1155Token } from "../generated/templates";
 
-export function handleProxyDeployed(call: DeployProxyCall): void {
+export function handleProxyDeployed(event: ProxyDeployed): void {
   // define local vars from call params
-  const currentTimestamp = call.block.timestamp;
-  const contractType = call.inputs._type.toHex();
-  const functionInput = call.inputs._data.subarray(4);
-  const contractAddress = call.outputs.value0;
+  const currentBlock = event.block;
+  const currentTimestamp = currentBlock.timestamp;
+  const contractType = event.params.contractType.toHex();
+  const functionInput = event.params.data.subarray(4);
+  const proxyAddress = event.params.proxy;
 
   //prepend a "tuple" prefix (function params are arrays, not tuples)
   const tuplePrefix = ByteArray.fromHexString(
@@ -38,22 +39,22 @@ export function handleProxyDeployed(call: DeployProxyCall): void {
     // DEPLOY NFT COLLECTION
     decodedInitData = ethereum.decode(funs_selectors.ERC721TOKEN_INIT, encodedInitData);
     collectionType = collections.ERC721_TOKEN;
-    ERC721Token.create(contractAddress);
+    ERC721Token.create(proxyAddress);
   } else if (contractType == contract_types.ERC721DROP_BYTES) {
     // DEPLOY NFT DROP
     decodedInitData = ethereum.decode(funs_selectors.ERC721DROP_INIT, encodedInitData);
     collectionType = collections.ERC721_DROP;
-    ERC721Drop.create(contractAddress);
+    ERC721Drop.create(proxyAddress);
   } else if (contractType == contract_types.ERC1155TOKEN_BYTES) {
     // DEPLOY FRACTIONAL NFT COLLECTION
     decodedInitData = ethereum.decode(funs_selectors.ERC1155TOKEN_INIT, encodedInitData);
     collectionType = collections.ERC1155_TOKEN;
-    ERC1155Token.create(contractAddress);
+    ERC1155Token.create(proxyAddress);
   } else if (contractType == contract_types.ERC1155DROP_BYTES) {
     // DEPLOY FRACTIONAL NFT DROP
     decodedInitData = ethereum.decode(funs_selectors.ERC1155DROP_INIT, encodedInitData);
     collectionType = collections.ERC1155_DROP;
-    ERC1155Drop.create(contractAddress);
+    ERC1155Drop.create(proxyAddress);
   }
 
   if (!decodedInitData) return;
@@ -64,7 +65,7 @@ export function handleProxyDeployed(call: DeployProxyCall): void {
   const contractName = initData[1].toString();
   const contractURI = initData[3].toString();
   const creator = createOrLoadUser(defaultAdmin);
-  let collection = createOrUpdateCollection(contractAddress, currentTimestamp);
+  let collection = createOrUpdateCollection(proxyAddress, currentTimestamp);
   collection.collectionType = collectionType;
   collection.creator = creator.id;
   collection.metadataURI = contractURI;
@@ -84,8 +85,8 @@ export function handleProxyDeployed(call: DeployProxyCall): void {
   }
 
   // create collection stats entity
-  const statsUID = generateCollectionStatsUID(contractAddress);
-  createOrLoadCollectionStats(contractAddress);
+  const statsUID = generateCollectionStatsUID(proxyAddress);
+  createOrLoadCollectionStats(proxyAddress);
 
   collection.statistics = statsUID;
   collection.createdAt = currentTimestamp;
@@ -93,5 +94,5 @@ export function handleProxyDeployed(call: DeployProxyCall): void {
   collection.save()
 
   // init create collection activity entity
-  createActivity(activities.CREATE_COLLECTION, call.block, call.transaction, null, contractAddress, defaultAdmin, null);
+  createActivity(activities.CREATE_COLLECTION, currentBlock, event.transaction, null, proxyAddress, defaultAdmin, null);
 } 

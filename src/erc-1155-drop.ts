@@ -1,61 +1,20 @@
 import {
-  SetClaimConditionsCall,
   ERC1155Drop,
   TokensClaimed as TokensClaimedEvent,
   TokensLazyMinted as TokensLazyMintedEvent,
   TransferBatch as TransferBatchEvent,
   TransferSingle as TransferSingleEvent,
+  ClaimConditionsUpdated as ClaimConditionsUpdatedEventEvent,
 } from "../generated/templates/ERC1155Drop/ERC1155Drop"
 import { Token, Attribute, DropClaimCondition } from "../generated/schema"
 
 import * as activities from "./constants/activities";
-import { Address, BigInt, log } from "@graphprotocol/graph-ts";
+import { Address, BigInt } from "@graphprotocol/graph-ts";
 import { getString, loadContentFromURI } from "./utils";
 import { createOrUpdateToken, createOrUpdateTokenBalance, generateTokenAttributeUID, generateTokenName, generateTokenUID, setTokenDropDetail, transferTokenBalance } from "./modules/token";
-import { NULL_ADDRESS, ONE_BIGINT } from "./constants";
+import { NULL_ADDRESS, ONE_BIGINT, ZERO_BIGINT } from "./constants";
 import { createActivity } from "./modules/activity";
 import { createOrLoadDropDetails, generateDropClaimConditionUID, generateDropDetailsUID, increaseSupplyClaimed } from "./modules/drop";
-
-export function handleSetClaimConditions(call: SetClaimConditionsCall): void {
-  // init local vars from event params
-  const tokenID = call.inputs._tokenId;
-  const resetEligibility = call.inputs._resetClaimEligibility;
-  const claimConditions = call.inputs._phases;
-  const dropAddress = call.transaction.to;
-  if (!dropAddress) return;
-  log.info("drop address: {}", [dropAddress.toString()]);
-
-  // init drop details entity
-  const tokenUID = generateTokenUID(dropAddress, tokenID);
-  const dropDetailUID = generateDropDetailsUID(tokenUID);
-  const dropDetail = createOrLoadDropDetails(dropDetailUID);
-  const nextStartClaimConditionID = dropDetail.startClaimConditionID.plus(BigInt.fromI32(dropDetail.count));
-  if (resetEligibility) {
-    dropDetail.startClaimConditionID = nextStartClaimConditionID;
-  }
-  dropDetail.count = claimConditions.length; 
-  dropDetail.save();
-  
-  // update token entity with drop detail UID
-  setTokenDropDetail(tokenUID, dropDetailUID);
-  
-  // loop through all the claim conditions, then init each 
-  const endClaimConditionID = nextStartClaimConditionID.plus(BigInt.fromI32(claimConditions.length));
-  let count = 0;
-  for (let i = nextStartClaimConditionID; i <= endClaimConditionID; i.plus(ONE_BIGINT)) {
-    const claimCondition = claimConditions[count];
-    const dropClaimConditionUID = generateDropClaimConditionUID(dropDetailUID, i);
-    const dropClaimCondition = new DropClaimCondition(dropClaimConditionUID);
-    dropClaimCondition.drop = dropDetailUID;
-    dropClaimCondition.startTimestamp = claimCondition.startTimestamp;
-    dropClaimCondition.maxClaimableSupply = claimCondition.maxClaimableSupply;
-    dropClaimCondition.quantityLimit = claimCondition.quantityLimitPerTransaction;
-    dropClaimCondition.price = claimCondition.pricePerToken;
-    dropClaimCondition.currency = claimCondition.currency;
-    dropClaimCondition.save();
-    count++;
-  }
-}
 
 export function handleTokensClaimed(event: TokensClaimedEvent): void {
   // init local vars from event params
@@ -199,4 +158,40 @@ function _handleLazyMint(currentTimestamp: BigInt, collection: Address, creator:
   token.tokenURI = tokenURI.toString();
   token.updatedAt = currentTimestamp;
   token.save();
+}
+
+export function handlerClaimConditionsUpdated(event: ClaimConditionsUpdatedEventEvent): void {
+  // init local vars from event params
+  const dropAddress = event.address;
+  const tokenID = event.params.tokenId;
+  const currentStartID = event.params.currentStartId;
+  const totalPhase = event.params.count;
+  const erc1155Drop = ERC1155Drop.bind(dropAddress);
+
+  // init drop details entity
+  const tokenUID = generateTokenUID(dropAddress, tokenID);
+  const dropDetailUID = generateDropDetailsUID(tokenUID);
+  const dropDetail = createOrLoadDropDetails(dropDetailUID);
+  dropDetail.startClaimConditionID = currentStartID;
+  dropDetail.count = totalPhase; 
+  dropDetail.save();
+  
+  // update token entity with drop detail UID
+  setTokenDropDetail(tokenUID, dropDetailUID);
+  
+  // loop through all the claim conditions, then init each 
+  // const endClaimConditionID = nextStartClaimConditionID.plus(BigInt.fromI32(claimConditions.length));
+  for (let i = ZERO_BIGINT; i < totalPhase; i.plus(ONE_BIGINT)) {
+    const claimConditionID = currentStartID.plus(i);
+    const claimCondition = erc1155Drop.getClaimConditionById(tokenID, claimConditionID);
+    const dropClaimConditionUID = generateDropClaimConditionUID(dropDetailUID, claimConditionID);
+    const dropClaimCondition = new DropClaimCondition(dropClaimConditionUID);
+    dropClaimCondition.drop = dropDetailUID;
+    dropClaimCondition.startTimestamp = claimCondition.startTimestamp;
+    dropClaimCondition.maxClaimableSupply = claimCondition.maxClaimableSupply;
+    dropClaimCondition.quantityLimit = claimCondition.quantityLimitPerTransaction;
+    dropClaimCondition.price = claimCondition.pricePerToken;
+    dropClaimCondition.currency = claimCondition.currency;
+    dropClaimCondition.save();
+  }
 }
