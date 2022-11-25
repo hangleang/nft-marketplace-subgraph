@@ -50,7 +50,7 @@ type Token @entity {
   tokenURI: String!
   name: String!
   description: String
-  content: String!
+  content: String
   externalURL: String
   fallbackURL: String
   attributes: [Attribute!] @derivedFrom(field: "token")

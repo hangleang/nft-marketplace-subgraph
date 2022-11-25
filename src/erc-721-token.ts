@@ -31,7 +31,7 @@ export function handleTokensMinted(event: TokensMintedEvent): void {
   );
 
   // create activity entity
-  createActivity(activities.MINTED, currentBlock, event.transaction, token, null, signer, recipient, ONE_BIGINT);
+  createActivity(activities.MINTED, currentBlock, event.transaction, event.logIndex, token, null, signer, recipient, ONE_BIGINT);
 }
 
 export function handleTokensMintedWithSignature(
@@ -57,7 +57,7 @@ export function handleTokensMintedWithSignature(
   // create activity entity
   const currency = event.params.mintRequest.currency;
   const price = event.params.mintRequest.price;
-  createActivity(activities.MINTED, currentBlock, event.transaction, token, null, signer, recipient, ONE_BIGINT, currency, price);
+  createActivity(activities.MINTED, currentBlock, event.transaction, event.logIndex, token, null, signer, recipient, ONE_BIGINT, currency, price);
 }
 
 export function handleTransfer(event: TransferEvent): void {
@@ -76,7 +76,7 @@ export function handleTransfer(event: TransferEvent): void {
   transferTokenBalance(tokenUID, from, to, ONE_BIGINT);
 
   // create activity entity
-  createActivity(activities.TRANSFERRED, event.block, event.transaction, token, null, from, to);
+  createActivity(activities.TRANSFERRED, event.block, event.transaction, event.logIndex, token, null, from, to);
 }
 
 function _handleMint(currentTimestamp: BigInt, collection: Address, creator: Address, recipient: Address, tokenID: BigInt, tokenURI: string): Token {
@@ -94,10 +94,9 @@ function _handleMint(currentTimestamp: BigInt, collection: Address, creator: Add
   const content = loadContentFromURI(tokenURI);
   if (content) {
     const name = getString(content, "name");
-    const contentURI = getString(content, "image");
     token.name = name ? name : generateTokenName(collection, tokenID);
     token.description = getString(content, "description");
-    token.content = contentURI ? contentURI : "";
+    token.content = getString(content, "image");
     token.externalURL = getString(content, "external_url");
     token.fallbackURL = getString(content, "fallback_url");
 

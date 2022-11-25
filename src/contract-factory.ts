@@ -94,5 +94,5 @@ export function handleProxyDeployed(event: ProxyDeployed): void {
   collection.save()
 
   // init create collection activity entity
-  createActivity(activities.CREATE_COLLECTION, currentBlock, event.transaction, null, proxyAddress, defaultAdmin, null);
+  createActivity(activities.CREATE_COLLECTION, currentBlock, event.transaction, event.logIndex, null, proxyAddress, defaultAdmin, null);
 } 

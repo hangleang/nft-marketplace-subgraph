@@ -1,12 +1,12 @@
 import { Address, BigInt, Bytes, ethereum } from "@graphprotocol/graph-ts";
 import { Token, Activity } from "../../generated/schema";
-import { NULL_ADDRESS, ONE_BIGINT, ZERO_BIGINT } from "../constants";
-import { generateUID } from "../utils";
+import { NULL_ADDRESS, ZERO_BIGINT } from "../constants";
 
 export function createActivity(
     type: string, 
     block: ethereum.Block, 
     tx: ethereum.Transaction, 
+    logIndex: BigInt,
     token: Token | null, 
     collection: Address | null,
     from: Address | null,
@@ -15,7 +15,8 @@ export function createActivity(
     currency: Bytes = NULL_ADDRESS,
     price: BigInt = ZERO_BIGINT
 ): void {
-    let activity = new Activity(generateUID([tx.hash.toHex(), tx.index.toString()]));
+    const activityUID = tx.hash.toHex() + "-" + logIndex.toString();
+    let activity = new Activity(activityUID);
     activity.activityType = type;
     activity.txHash = tx.hash.toHex();
     activity.blockHash = block.hash.toHex();

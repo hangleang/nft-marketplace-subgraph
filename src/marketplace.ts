@@ -44,7 +44,7 @@ export function handleAuctionClosed(event: AuctionClosed): void {
     updateCollectionStatsList(Address.fromString(token.collection), listing.availableQty, false);
 
     // create close auction activity entity
-    createActivity(activities.CLOSE_AUCTION, currentBlock, event.transaction, token, null, closer, null);
+    createActivity(activities.CLOSE_AUCTION, currentBlock, event.transaction, event.logIndex, token, null, closer, null);
   }
 }
 
@@ -75,7 +75,7 @@ export function handleListingAdded(event: ListingAdded): void {
   updateCollectionStatsList(collection, listing.quantity, true);
 
   // create list activity entity
-  createActivity(activities.LIST, currentBlock, event.transaction, token, null, lister, null, listing.quantity, listing.currency, listing.buyoutPricePerToken);
+  createActivity(activities.LIST, currentBlock, event.transaction, event.logIndex, token, null, lister, null, listing.quantity, listing.currency, listing.buyoutPricePerToken);
 }
 
 export function handleListingRemoved(event: ListingRemoved): void {
@@ -102,7 +102,7 @@ export function handleListingRemoved(event: ListingRemoved): void {
   updateCollectionStatsList(Address.fromString(token.collection), listing.quantity, false);
 
   // create list activity entity
-  createActivity(activities.UNLIST, currentBlock, event.transaction, token, null, owner, null, listing.quantity, listing.currency, listing.buyoutPricePerToken);
+  createActivity(activities.UNLIST, currentBlock, event.transaction, event.logIndex, token, null, owner, null, listing.quantity, listing.currency, listing.buyoutPricePerToken);
 }
 
 export function handleListingUpdated(event: ListingUpdated): void {
@@ -146,7 +146,7 @@ export function handleListingUpdated(event: ListingUpdated): void {
   listing.save();  
 
   // create update listing activity entity
-  createActivity(activities.UPDATE_LISTING, currentBlock, event.transaction, token, null, owner, null, listing.quantity, listing.currency, listing.buyoutPricePerToken);
+  createActivity(activities.UPDATE_LISTING, currentBlock, event.transaction, event.logIndex, token, null, owner, null, listing.quantity, listing.currency, listing.buyoutPricePerToken);
 }
 
 export function handleNewOffer(event: NewOffer): void {
@@ -182,7 +182,7 @@ export function handleNewOffer(event: NewOffer): void {
   offer.save();
 
   // create update listing activity entity
-  createActivity(activities.MAKE_OFFER, currentBlock, tx, token, null, offeror, null, quantity, currency, offerAmount);
+  createActivity(activities.MAKE_OFFER, currentBlock, tx, event.logIndex, token, null, offeror, null, quantity, currency, offerAmount);
 }
 
 export function handleNewSale(event: NewSale): void {
@@ -215,7 +215,8 @@ export function handleNewSale(event: NewSale): void {
   }
 
   // init offer entity by tx hash
-  const sale = new Sale(tx.hash.toHex());
+  const saleUID = event.transaction.hash.toHex() + "-" + event.logIndex.toString();
+  const sale = new Sale(saleUID);
   sale.listing = listingID;
   sale.seller = seller.toHex();
   sale.buyer = buyer.toHex();
@@ -236,7 +237,7 @@ export function handleNewSale(event: NewSale): void {
   updateCollectionStats(collection, quantity, totalPaid);
 
   // create update listing activity entity
-  createActivity(activities.SOLD, currentBlock, tx, token, null, seller, buyer, quantity, currency, totalPaid);
+  createActivity(activities.SOLD, currentBlock, tx, event.logIndex, token, null, seller, buyer, quantity, currency, totalPaid);
 }
 
 export function handleUpgraded(event: Upgraded): void {

@@ -36,7 +36,7 @@ export function handleERC1155TokenTokensMinted(
   );
 
   // create activity entity
-  createActivity(activities.MINTED, currentBlock, event.transaction, token, null, null, recipient, quantity);
+  createActivity(activities.MINTED, currentBlock, event.transaction, event.logIndex, token, null, null, recipient, quantity);
 }
 
 export function handleERC1155TokenTokensMintedWithSignature(
@@ -64,7 +64,7 @@ export function handleERC1155TokenTokensMintedWithSignature(
   // create activity entity
   const currency = event.params.mintRequest.currency;
   const price = event.params.mintRequest.pricePerToken;
-  createActivity(activities.MINTED, currentBlock, event.transaction, token, null, signer, recipient, quantity, currency, price);
+  createActivity(activities.MINTED, currentBlock, event.transaction, event.logIndex, token, null, signer, recipient, quantity, currency, price);
 }
 
 export function handleERC1155TokenTransferBatch(
@@ -91,7 +91,7 @@ export function handleERC1155TokenTransferBatch(
     transferTokenBalance(tokenUID, from, to, value);
 
     // create activity entity
-    createActivity(activities.TRANSFERRED, event.block, event.transaction, token, null, from, to, value);
+    createActivity(activities.TRANSFERRED, event.block, event.transaction, event.logIndex, token, null, from, to, value);
   }
 }
 
@@ -114,7 +114,7 @@ export function handleERC1155TokenTransferSingle(
   transferTokenBalance(tokenUID, from, to, value);
 
   // create activity entity
-  createActivity(activities.TRANSFERRED, event.block, event.transaction, token, null, from, to, value);
+  createActivity(activities.TRANSFERRED, event.block, event.transaction, event.logIndex, token, null, from, to, value);
 }
 
 function _handleMint(currentTimestamp: BigInt, collection: Address, creator: Address, recipient: Address, tokenID: BigInt, quantity: BigInt, tokenURI: string): Token {
@@ -132,10 +132,9 @@ function _handleMint(currentTimestamp: BigInt, collection: Address, creator: Add
   const content = loadContentFromURI(tokenURI);
   if (content) {
     const name = getString(content, "name");
-    const contentURI = getString(content, "image");
     token.name = name ? name : generateTokenName(collection, tokenID);
     token.description = getString(content, "description");
-    token.content = contentURI ? contentURI : "";
+    token.content = getString(content, "image");
     token.externalURL = getString(content, "external_url");
     token.fallbackURL = getString(content, "fallback_url");
 

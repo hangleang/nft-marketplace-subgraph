@@ -39,8 +39,8 @@ export function handleTokensClaimed(event: TokensClaimedEvent): void {
 
     // create `claimed` and `minted` activity entity
     //! TODO: get info from claim condition by index to set the additional fields
-    createActivity(activities.CLAIMED, currentBlock, event.transaction, token, null, claimer, receiver, ONE_BIGINT);
-    createActivity(activities.MINTED, currentBlock, event.transaction, token, null, receiver, receiver, ONE_BIGINT);
+    createActivity(activities.CLAIMED, currentBlock, event.transaction, event.logIndex, token, null, claimer, null, ONE_BIGINT);
+    createActivity(activities.MINTED, currentBlock, event.transaction, event.logIndex, token, null, receiver, null, ONE_BIGINT);
     count++;
   }
 
@@ -91,7 +91,7 @@ export function handleTransferBatch(event: TransferBatchEvent): void {
     transferTokenBalance(tokenUID, from, to, value);
 
     // create activity entity
-    createActivity(activities.TRANSFERRED, event.block, event.transaction, token, null, from, to, value);
+    createActivity(activities.TRANSFERRED, event.block, event.transaction, event.logIndex, token, null, from, to, value);
   }
 }
 
@@ -112,7 +112,7 @@ export function handleTransferSingle(event: TransferSingleEvent): void {
   transferTokenBalance(tokenUID, from, to, value);
 
   // create activity entity
-  createActivity(activities.TRANSFERRED, event.block, event.transaction, token, null, from, to, value);
+  createActivity(activities.TRANSFERRED, event.block, event.transaction, event.logIndex, token, null, from, to, value);
 }
 
 function _handleLazyMint(currentTimestamp: BigInt, collection: Address, creator: Address, _baseURI: string, tokenID: BigInt): void {
@@ -131,10 +131,9 @@ function _handleLazyMint(currentTimestamp: BigInt, collection: Address, creator:
 
   if (content) {
     const name = getString(content, "name");
-    const contentURI = getString(content, "image");
     token.name = name ? name : generateTokenName(collection, tokenID);
     token.description = getString(content, "description");
-    token.content = contentURI ? contentURI : "";
+    token.content = getString(content, "image");
     token.externalURL = getString(content, "external_url");
     token.fallbackURL = getString(content, "fallback_url");
 

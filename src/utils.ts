@@ -3,11 +3,11 @@ import { BigDecimal, ipfs, json, JSONValue, log, TypedMap } from "@graphprotocol
 export function loadContentFromURI(uri: string): TypedMap<string, JSONValue> | null {
     const CID: string = URIToIPFSHash(uri);
 
+    log.info("CID: {}", [CID]);
     if (CID && CID.length > 21) {
         const content = ipfs.cat(CID);
     
         if (!content) return null;
-        log.info("content: {}", [content.toString()]);
         return json.fromBytes(content).toObject();
     }
     return null;
