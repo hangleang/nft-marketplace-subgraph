@@ -1,21 +1,26 @@
-import { BigDecimal, ipfs, json, JSONValue, log, TypedMap } from "@graphprotocol/graph-ts"
+import { BigDecimal, ipfs, json, JSONValue, log, TypedMap } from "@graphprotocol/graph-ts";
+
+const IPFS_PREFIX: string = "ipfs://";
 
 export function loadContentFromURI(uri: string): TypedMap<string, JSONValue> | null {
-    const CID: string = URIToIPFSHash(uri);
+    const CID = URIToIPFSHash(uri);
 
-    log.info("CID: {}", [CID]);
-    if (CID && CID.length > 21) {
+    if (CID && (CID.startsWith("Qm") || CID.startsWith("ba")) && CID.length > 21) {
         const content = ipfs.cat(CID);
-    
-        if (!content) return null;
-        return json.fromBytes(content).toObject();
+        
+        if (content) return json.fromBytes(content).toObject();
     }
     return null;
 }
 
-export function URIToIPFSHash(uri: string): string {
-    const cid = uri.replace("ipfs://", "");
-    return cid;
+export function URIToIPFSHash(uri: string): string | null {
+    if (uri.startsWith(IPFS_PREFIX)) {
+        const cid = uri.replace(IPFS_PREFIX, "");
+        log.info("CID: {}", [cid]);
+
+        return cid;
+    }
+    return null;
 }
 
 export function generateUID(keys: string[], sep: string = "-"): string {
