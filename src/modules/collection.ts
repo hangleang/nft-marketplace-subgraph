@@ -1,15 +1,85 @@
 import { Address, BigInt } from "@graphprotocol/graph-ts";
 import { Collection, CollectionStats } from "../../generated/schema";
 import { STATS_POSTFIX, ZERO_BIGINT, ZERO_DECIMAL } from "../constants";
-import { generateUID, getMax, getMin } from "../utils";
+import { concatImageIPFS, generateUID, getMax, getMin, getString, isIPFS, isURI, loadContentFromURI } from "../utils";
+import { IERC165Metadata } from '../../generated/ERC721/IERC165Metadata';
+import { supportsInterface } from "./erc165";
+import { createOrLoadAccount } from "./account";
 
-export function createOrUpdateCollection(address: Address, currentTimestamp: BigInt): Collection {
+import * as collections from '../constants/collections';
+
+export function createOrLoadCollection(address: Address, currentTimestamp: BigInt): Collection | null {
+  createOrLoadAccount(address)
+  let contract = IERC165Metadata.bind(address);
+
+  // Detect using ERC165
+  let introspection_01ffc9a7 = supportsInterface(contract, '01ffc9a7') // ERC165
+  let introspection_80ac58cd = supportsInterface(contract, '80ac58cd') // ERC721
+  let introspection_d9b67a26 = supportsInterface(contract, 'd9b67a26') // ERC1155
+  let introspection_00000000 = supportsInterface(contract, '00000000', false)
+  let isERC721               = introspection_01ffc9a7 && introspection_80ac58cd && introspection_00000000
+  let isERC1155              = introspection_01ffc9a7 && introspection_d9b67a26 && introspection_00000000
+
+  // Try load collection entity
   let collection = Collection.load(address.toHex());
-
-  if (!collection) {
-    collection = new Collection(address.toHex());
-    collection.createdAt = currentTimestamp;
+  if (collection != null) {
+    return collection;
   }
+
+  // If support interface, build a collection entity
+  if (isERC721 || isERC1155) {
+    collection                = new Collection(address.toHex());
+    let try_name              = contract.try_name()
+		let try_symbol            = contract.try_symbol()
+    let try_contractURI       = contract.try_contractURI()
+    let try_owner             = contract.try_owner()
+    const nameFromContract    = try_name.reverted   ? '' : try_name.value;
+    collection.name           = nameFromContract
+		collection.symbol         = try_symbol.reverted ? '' : try_symbol.value
+    collection.metadataURI    = try_contractURI.reverted ? null : try_contractURI.value
+    
+    // Try load owner, then set to collection entity
+    if (!try_owner.reverted) {
+      collection.owner        = createOrLoadAccount(try_owner.value).id
+    }
+    
+    // If have contractURI, then try load from IPFS
+    if (!try_contractURI.reverted) {
+      const contractURI = try_contractURI.value
+      collection.isIPFS = isIPFS(contractURI);
+
+      // fetch metadata from IPFS URI, then set metadata fields
+      const content = loadContentFromURI(contractURI)
+      if (content) {
+        const name                = getString(content, "name")
+        const featuredImage       = getString(content, "image")
+        const bannerImage         = getString(content, "banner_image")
+        collection.name           = name ? name : nameFromContract
+        collection.description    = getString(content, "description")
+        collection.featuredImage  = featuredImage ? isURI(featuredImage) ? featuredImage : concatImageIPFS(contractURI, featuredImage) : null
+        collection.bannerImage    = bannerImage ? isURI(bannerImage) ? bannerImage : concatImageIPFS(contractURI, bannerImage) : null
+        collection.externalLink   = getString(content, "external_link")
+        collection.fallbackURL    = getString(content, "fallback_url")
+      }
+    }
+
+    if (isERC721) {
+      collection.collectionType   = collections.SINGLE           
+      collection.supportsMetadata = supportsInterface(contract, '5b5e139f') // ERC721Metadata
+    } else if (isERC1155) {
+      collection.collectionType   = collections.MULTI
+      collection.supportsMetadata = supportsInterface(contract, '0e89341c') // ERC1155Metadata_URI
+    }
+
+    // Create collection stats entity
+    const collectionStats         = createOrLoadCollectionStats(address);
+
+    collection.statistics         = collectionStats.id;
+    collection.createdAt          = currentTimestamp;
+    collection.updatedAt          = currentTimestamp;
+    collection.save()
+  } 
+
   return collection;
 }
 
@@ -22,7 +92,7 @@ export function setCollectionDropDetail(address: Address, dropDetailUID: string)
   }
 }
 
-export function generateCollectionStatsUID(collection: Address): string {
+function generateCollectionStatsUID(collection: Address): string {
   return generateUID([collection.toHex(), STATS_POSTFIX])
 }
 

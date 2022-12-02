@@ -5,7 +5,7 @@ import * as contract_types from "./constants/contract_types";
 import * as funs_selectors from "./constants/function_selectors";
 
 import { ProxyDeployed } from "../generated/ContractFactory/ContractFactory"
-import { getString, loadContentFromURI } from "./utils";
+import { concatImageIPFS, getString, loadContentFromURI, metadataURIToCID } from "./utils";
 import { createOrLoadCollectionStats, createOrUpdateCollection, generateCollectionStatsUID } from "./modules/collection";
 import { createActivity } from "./modules/activity";
 import { createOrLoadUser } from "./modules/user";
@@ -74,10 +74,12 @@ export function handleProxyDeployed(event: ProxyDeployed): void {
   const content = loadContentFromURI(contractURI);
   if (content) {
     const name = getString(content, "name");
+    const featuredImagePath = getString(content, "image");
+    const bannerImagePath = getString(content, "banner_image");
     collection.name = name ? name : contractName;
     collection.description = getString(content, "description");
-    collection.featuredImage = getString(content, "image");
-    collection.bannerImage = getString(content, "banner_image");
+    collection.featuredImage = featuredImagePath ? concatImageIPFS(contractURI, featuredImagePath) : null;
+    collection.bannerImage = bannerImagePath ? concatImageIPFS(contractURI, bannerImagePath) : null;
     collection.externalLink = getString(content, "external_link");
     collection.fallbackURL = getString(content, "fallback_url");
   } else {

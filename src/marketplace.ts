@@ -14,13 +14,14 @@ import { createListing } from "./modules/listing";
 import { createMarketplace, increaseMarketplaceVersion } from "./modules/marketplace"
 
 import * as activities from './constants/activities';
-import { createOrUpdateTokenBalance, generateTokenUID } from "./modules/token";
+import { transferTokenBalance, generateTokenUID, createOrLoadToken } from "./modules/token";
 import { Listing, Offer, Sale, Token } from "../generated/schema";
 import { AUCTION, LISTING_TYPES } from "./constants/listings";
 import { generateUID } from "./utils";
 import { ZERO_BIGINT } from "./constants";
 import { updateCollectionStats, updateCollectionStatsList } from "./modules/collection";
 import { Address, Bytes } from "@graphprotocol/graph-ts";
+import { createOrLoadAccount } from "./modules/account";
 
 export function handleAuctionClosed(event: AuctionClosed): void {
   // init local vars from event params
@@ -56,10 +57,13 @@ export function handleListingAdded(event: ListingAdded): void {
   // init local vars from event params
   const currentBlock = event.block;
   const collection = event.params.assetContract;
-  const lister = event.params.lister;
+  const listerAddress = event.params.lister;
   const listingID = event.params.listingId;
   const listing = event.params.listing;
   const tokenUID = generateTokenUID(collection, listing.tokenId);
+
+  const lister = createOrLoadAccount(listerAddress)
+  const marketplace = createOrLoadAccount(event.address)
 
   // load/check token by tokenUID
   const token = Token.load(tokenUID);
@@ -68,32 +72,35 @@ export function handleListingAdded(event: ListingAdded): void {
   // create listing entity from given params, also update token balance if auction listing
   createListing(listingID, tokenUID, listing, currentBlock.timestamp);
   if (LISTING_TYPES[listing.listingType] == AUCTION) {
-    createOrUpdateTokenBalance(tokenUID, lister, listing.quantity, false);
+    transferTokenBalance(token, lister, marketplace, listing.quantity);
   }
 
   // increase collection stats listed amount
   updateCollectionStatsList(collection, listing.quantity, true);
 
   // create list activity entity
-  createActivity(activities.LIST, currentBlock, event.transaction, event.logIndex, token, null, lister, null, listing.quantity, listing.currency, listing.buyoutPricePerToken);
+  createActivity(activities.LIST, currentBlock, event.transaction, event.logIndex, token, null, listerAddress, null, listing.quantity, listing.currency, listing.buyoutPricePerToken);
 }
 
 export function handleListingRemoved(event: ListingRemoved): void {
   // init local vars from event params
   const currentBlock = event.block;
   const listingID = event.params.listingId;
-  const owner = event.params.listingCreator;
+  const ownerAddress = event.params.listingCreator;
+
+  const owner = createOrLoadAccount(ownerAddress)
+  const marketplace = createOrLoadAccount(event.address)
 
   // load/check listing by listingID
   const listing = Listing.load(listingID.toString());
   if (!listing) return;
-  if (listing.listingType == AUCTION) {
-    createOrUpdateTokenBalance(listing.token, owner, listing.quantity, true);
-  }
 
   // load/check token by tokenUID
   const token = Token.load(listing.token);
   if (!token) return;
+  if (listing.listingType == AUCTION) {
+    transferTokenBalance(token, marketplace, owner, listing.quantity);
+  }
 
   listing.removedAt = currentBlock.timestamp;
   listing.save();
@@ -102,15 +109,18 @@ export function handleListingRemoved(event: ListingRemoved): void {
   updateCollectionStatsList(Address.fromString(token.collection), listing.quantity, false);
 
   // create list activity entity
-  createActivity(activities.UNLIST, currentBlock, event.transaction, event.logIndex, token, null, owner, null, listing.quantity, listing.currency, listing.buyoutPricePerToken);
+  createActivity(activities.UNLIST, currentBlock, event.transaction, event.logIndex, token, null, ownerAddress, null, listing.quantity, listing.currency, listing.buyoutPricePerToken);
 }
 
 export function handleListingUpdated(event: ListingUpdated): void {
   // init local vars from event params
   const currentBlock = event.block;
   const listingID = event.params.listingId;
-  const owner = event.params.listingCreator;
+  const ownerAddress = event.params.listingCreator;
   const listingStruct = Marketplace.bind(event.address).listings(listingID);
+
+  const owner = createOrLoadAccount(ownerAddress)
+  const marketplace = createOrLoadAccount(event.address)
   
   // load/check listing by listingID
   const listing = Listing.load(listingID.toString());
@@ -125,13 +135,14 @@ export function handleListingUpdated(event: ListingUpdated): void {
   if (updatedQty != prevQty) {
     const isAddUp = updatedQty > prevQty;
     const qtyDiff = updatedQty.minus(prevQty).abs();
-
+    
     // update collection stats listed amount
     const collectionAddress = Address.fromString(token.collection);
     updateCollectionStatsList(collectionAddress, qtyDiff, isAddUp);
-
+    
     if (listing.listingType == AUCTION) {
-      createOrUpdateTokenBalance(listing.token, owner, qtyDiff, isAddUp);
+      transferTokenBalance(token, marketplace, owner, prevQty);
+      transferTokenBalance(token, owner, marketplace, updatedQty);
     }
   }
   
@@ -146,7 +157,7 @@ export function handleListingUpdated(event: ListingUpdated): void {
   listing.save();  
 
   // create update listing activity entity
-  createActivity(activities.UPDATE_LISTING, currentBlock, event.transaction, event.logIndex, token, null, owner, null, listing.quantity, listing.currency, listing.buyoutPricePerToken);
+  createActivity(activities.UPDATE_LISTING, currentBlock, event.transaction, event.logIndex, token, null, ownerAddress, null, listing.quantity, listing.currency, listing.buyoutPricePerToken);
 }
 
 export function handleNewOffer(event: NewOffer): void {

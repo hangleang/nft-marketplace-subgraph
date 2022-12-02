@@ -1,0 +1,139 @@
+- kind: ethereum
+    name: ContractFactory
+    network: goerli
+    source:
+      abi: ContractFactory
+      address: "0x9F74659aa838715FfAA5A1447147d9a747266ba3"
+      startBlock: 7997768
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      file: ./src/contract-factory.ts
+      entities:
+        - Collection
+        - Activity
+      abis:
+        - name: ContractFactory
+          file: ./abis/ContractFactory.json
+      eventHandlers:
+        - event: ProxyDeployed(indexed bytes32,bytes,address,indexed address)
+          handler: handleProxyDeployed
+# templates:
+#   - kind: ethereum
+#     name: ERC721Token
+#     network: goerli
+#     source:
+#       abi: ERC721Token
+#     mapping:
+#       kind: ethereum/events
+#       apiVersion: 0.0.6
+#       language: wasm/assemblyscript
+#       file: ./src/erc-721-token.ts
+#       entities:
+#         - Collection
+#         - Token
+#         - Activity
+#       abis:
+#         - name: ERC721Token
+#           file: ./abis/ERC721Token.json
+#       eventHandlers:
+#         - event: TokensMinted(indexed address,indexed uint256,string)
+#           topic0: "0x9d89e36eadf856db0ad9ffb5a569e07f95634dddd9501141ecf04820484ad0dc"
+#           handler: handleTokensMinted
+#         - event: TokensMintedWithSignature(indexed address,indexed address,indexed
+#             uint256,(address,address,uint256,address,string,uint256,address,uint128,uint128,bytes32))
+#           handler: handleTokensMintedWithSignature
+#         - event: Transfer(indexed address,indexed address,indexed uint256)
+#           topic0: "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef"
+#           handler: handleTransfer
+#   - kind: ethereum
+#     name: ERC1155Drop
+#     network: goerli
+#     source:
+#       abi: ERC1155Drop
+#     mapping:
+#       kind: ethereum/events
+#       apiVersion: 0.0.6
+#       language: wasm/assemblyscript
+#       file: ./src/erc-1155-drop.ts
+#       entities:
+#         - Collection
+#         - Token
+#         - Activity
+#       abis:
+#         - name: ERC1155Drop
+#           file: ./abis/ERC1155Drop.json
+#       eventHandlers:
+#         - event: TokensClaimed(indexed uint256,indexed uint256,indexed
+#             address,address,uint256)
+#           handler: handleTokensClaimed
+#         - event: TokensLazyMinted(uint256,uint256,string)
+#           handler: handleTokensLazyMinted
+#         - event: TransferBatch(indexed address,indexed address,indexed
+#             address,uint256[],uint256[])
+#           handler: handleTransferBatch
+#         - event: TransferSingle(indexed address,indexed address,indexed
+#             address,uint256,uint256)
+#           handler: handleTransferSingle
+#         - event: ClaimConditionsUpdated(uint256,uint256,uint256,bool)
+#           handler: handlerClaimConditionsUpdated
+#   - kind: ethereum
+#     name: ERC1155Token
+#     network: goerli
+#     source:
+#       abi: ERC1155Token
+#     mapping:
+#       kind: ethereum/events
+#       apiVersion: 0.0.6
+#       language: wasm/assemblyscript
+#       file: ./src/erc-1155-token.ts
+#       entities:
+#         - Collection
+#         - Token
+#         - Activity
+#       abis:
+#         - name: ERC1155Token
+#           file: ./abis/ERC1155Token.json
+#       eventHandlers:
+#         - event: ERC1155TokenTokensMinted(indexed address,indexed uint256,string,uint256)
+#           handler: handleERC1155TokenTokensMinted
+#         - event: ERC1155TokenTokensMintedWithSignature(indexed address,indexed
+#             address,indexed
+#             uint256,(address,address,uint256,address,uint256,string,uint256,uint256,address,uint128,uint128,bytes32))
+#           handler: handleERC1155TokenTokensMintedWithSignature
+#         - event: ERC1155TokenTransferBatch(indexed address,indexed address,indexed
+#             address,uint256[],uint256[])
+#           handler: handleERC1155TokenTransferBatch
+#         - event: ERC1155TokenTransferSingle(indexed address,indexed address,indexed
+#             address,uint256,uint256)
+#           handler: handleERC1155TokenTransferSingle
+#   - kind: ethereum
+#     name: ERC721Drop
+#     network: goerli
+#     source:
+#       abi: ERC721Drop
+#     mapping:
+#       kind: ethereum/events
+#       apiVersion: 0.0.6
+#       language: wasm/assemblyscript
+#       file: ./src/erc-721-drop.ts
+#       entities:
+#         - Collection
+#         - Token
+#         - Activity
+#       abis:
+#         - name: ERC721Drop
+#           file: ./abis/ERC721Drop.json
+#       eventHandlers:
+#         - event: NFTRevealed(uint256,uint256,string)
+#           handler: handleNFTRevealed
+#         - event: ERC721DropTokensClaimed(indexed uint256,indexed address,indexed
+#             address,uint256,uint256)
+#           handler: handleERC721DropTokensClaimed
+#         - event: ERC721DropTokensLazyMinted(uint256,uint256,string,bytes)
+#           handler: handleERC721DropTokensLazyMinted
+#         - event: ERC721DropTransfer(indexed address,indexed address,indexed uint256)
+#           handler: handleERC721DropTransfer
+#         - event: ERC721DropClaimConditionsUpdated(uint256,uint256,bool)
+#           handler: handlerClaimConditionsUpdated

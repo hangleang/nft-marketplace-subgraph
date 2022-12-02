@@ -6,7 +6,7 @@ import {
 } from "../generated/templates/ERC1155Token/ERC1155Token"
 import { Address, BigInt } from "@graphprotocol/graph-ts";
 import { createOrUpdateToken, createOrUpdateTokenBalance, generateTokenAttributeUID, generateTokenName, generateTokenUID, transferTokenBalance } from "./modules/token";
-import { getString, loadContentFromURI } from "./utils";
+import { concatImageIPFS, getString, loadContentFromURI } from "./utils";
 import { createActivity } from "./modules/activity";
 import { Token, Attribute } from "../generated/schema"
 
@@ -132,9 +132,10 @@ function _handleMint(currentTimestamp: BigInt, collection: Address, creator: Add
   const content = loadContentFromURI(tokenURI);
   if (content) {
     const name = getString(content, "name");
+    const imagePath = getString(content, "image")
     token.name = name ? name : generateTokenName(collection, tokenID);
     token.description = getString(content, "description");
-    token.content = getString(content, "image");
+    token.content = imagePath ? concatImageIPFS(tokenURI, imagePath) : null;
     token.externalURL = getString(content, "external_url");
     token.fallbackURL = getString(content, "fallback_url");
 
