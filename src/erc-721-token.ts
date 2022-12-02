@@ -6,7 +6,7 @@ import {
 import { Address, BigInt } from "@graphprotocol/graph-ts";
 import { Attribute, Token } from "../generated/schema"
 import { NULL_ADDRESS, ONE_BIGINT } from "./constants";
-import { getString, loadContentFromURI } from "./utils";
+import { concatImageIPFS, getString, loadContentFromURI } from "./utils";
 import { createOrUpdateToken, createOrUpdateTokenBalance, generateTokenAttributeUID, generateTokenName, generateTokenUID, transferTokenBalance } from "./modules/token";
 import { createActivity } from "./modules/activity";
 
@@ -94,9 +94,10 @@ function _handleMint(currentTimestamp: BigInt, collection: Address, creator: Add
   const content = loadContentFromURI(tokenURI);
   if (content) {
     const name = getString(content, "name");
+    const imagePath = getString(content, "image");
     token.name = name ? name : generateTokenName(collection, tokenID);
     token.description = getString(content, "description");
-    token.content = getString(content, "image");
+    token.content = imagePath ? concatImageIPFS(tokenURI, imagePath) : null;
     token.externalURL = getString(content, "external_url");
     token.fallbackURL = getString(content, "fallback_url");
 

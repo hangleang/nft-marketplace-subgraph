@@ -6,25 +6,39 @@ type Marketplace @entity {
   updatedAt: BigInt!
 }
 
-type User @entity {
-  id: ID! # user address
+type Account @entity {
+  id: ID! # account address
   created: [Token!]! @derivedFrom(field: "creator")
-  owned: [TokenOwnership!]! @derivedFrom(field: "owner")
+  owned: [TokenBalance!]! @derivedFrom(field: "owner")
   onsale: [Listing!]! @derivedFrom(field: "owner")
-  collections: [Collection!]! @derivedFrom(field: "creator")
+  collections: [Collection!]! @derivedFrom(field: "owner")
   offers: [Offer!]! @derivedFrom(field: "offeror")
+  operatorOwners: [Operator!] @derivedFrom(field: "owner")
+  operators: [Operator!] @derivedFrom(field: "operator")
   activities: [Activity!]! @derivedFrom(field: "from")
+}
+
+type Operator @entity {
+  id: ID!
+  collection: Collection!
+	owner: Account!
+	operator: Account!
+	approved: Boolean!
 }
 
 type Collection @entity {
   id: ID! # token address
   collectionType: CollectionType!
-  creator: User! 
+  owner: Account
   tokens: [Token!]! @derivedFrom(field: "collection")
+  operators: [Operator!]! @derivedFrom(field: "collection")
 
   # metadata
-  metadataURI: String!
+  supportsMetadata: Boolean!
+  isIPFS: Boolean
+  metadataURI: String
   name: String!
+  symbol: String!
   description: String
   featuredImage: String
   bannerImage: String
@@ -43,20 +57,26 @@ type Token @entity {
   id: ID!
   collection: Collection!
   tokenId: BigInt!
-  creator: User!
-  owners: [TokenOwnership!]! @derivedFrom(field: "token")
+  creator: Account
+  balances: [TokenBalance!]! @derivedFrom(field: "token")
+  totalSupply: TokenBalance!
+  approval: Account!
 
   # metadata
-  tokenURI: String!
+  isIPFS: Boolean!
+  tokenURI: String
   name: String!
   description: String
-  content: String
+  contentURI: String
   externalURL: String
   fallbackURL: String
   attributes: [Attribute!] @derivedFrom(field: "token")
+  bgColor: String
+  animationURL: String
+  youtubeURL: String
 
   # misc
-  isLazyMinted: Boolean!
+  isLazyMinted: Boolean
   dropDetails: DropDetail
 
   activities: [Activity!]! @derivedFrom(field: "token")
@@ -67,7 +87,7 @@ type Token @entity {
 type Listing @entity {
   id: ID! 
   token: Token!
-  owner: User! 
+  owner: Account! 
   listingType: ListingType!
 
   # listing properties
@@ -93,7 +113,7 @@ type Listing @entity {
 type Offer @entity(immutable: true) {
   id: ID!
   listing: Listing!
-  offeror: User!
+  offeror: Account!
 
   quantity: BigInt!
   offerAmount: BigInt! # total amount offer
@@ -108,8 +128,8 @@ type Offer @entity(immutable: true) {
 type Sale @entity(immutable: true) {
   id: ID!
   listing: Listing!
-  seller: User!
-  buyer: User!
+  seller: Account!
+  buyer: Account!
   quantityBought: BigInt!
   totalPaid: BigInt!
 
@@ -120,8 +140,8 @@ type Sale @entity(immutable: true) {
 
 type Activity @entity(immutable: true) {
   id: ID!
-  from: User
-  to: User
+  from: Account
+  to: Account
   collection: Collection
   token: Token
   activityType: ActivityType!
@@ -137,11 +157,13 @@ type Activity @entity(immutable: true) {
 
 # misc
 
-type TokenOwnership @entity {
+type TokenBalance @entity {
   id: ID!
+  collection: Collection!
   token: Token!
-  owner: User!
-  quantity: BigInt!
+  owner: Account
+  value: BigDecimal!
+  valueExact: BigInt!
 }
 
 type CollectionStats @entity {
@@ -158,7 +180,8 @@ type CollectionStats @entity {
 type Attribute @entity {
   id: ID!
   token: Token!
-  key: String!
+  displayType: String!
+  traitType: String!
   value: String!
 }
 
@@ -190,10 +213,12 @@ type DropClaimCondition @entity {
 # types
 
 enum CollectionType {
-  ERC1155Drop,
-  ERC1155Token,
-  ERC721Drop,
-  ERC721Token
+  # ERC1155Drop,
+  # ERC1155Token,
+  # ERC721Drop,
+  # ERC721Token
+  SingleEdition,
+  MultiEdition
 }
 
 enum ListingType {
@@ -218,12 +243,12 @@ enum ActivityType {
 type _Schema_
 
 @fulltext(
-  name: "userSearch"
+  name: "accountSearch"
   language: en
   algorithm: proximityRank
   include: [
     {
-      entity: "User",
+      entity: "Account",
       fields: [
         { name: "id" }
       ]
@@ -241,6 +266,7 @@ type _Schema_
       fields: [
         { name: "id" },
         { name: "name" },
+        { name: "symbol" },
         { name: "description" },
       ]
     }

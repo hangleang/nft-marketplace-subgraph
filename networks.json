@@ -7,6 +7,12 @@
     "ContractFactory": {
       "address": "0x4Cc625e6d3fB532EC28312Fd52b0495ceCd59556",
       "startBlock": 29275960
+    },
+    "ERC721": {
+      "startBlock": 28851285
+    },
+    "ERC1155":  {
+      "startBlock": 28851285
     }
   },
   "goerli": {
@@ -17,6 +23,12 @@
     "ContractFactory": {
       "address": "0x9F74659aa838715FfAA5A1447147d9a747266ba3",
       "startBlock": 7997768
+    },
+    "ERC721": {
+      "startBlock": 7847946
+    },
+    "ERC1155":  {
+      "startBlock": 7847946
     }
   }
 }
