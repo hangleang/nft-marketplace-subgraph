@@ -1,51 +1,47 @@
-import { Address, BigInt, Bytes, ethereum } from "@graphprotocol/graph-ts";
-import { Token, Activity } from "../../generated/schema";
-import { NULL_ADDRESS, ZERO_BIGINT } from "../constants";
+import { Address, BigDecimal, BigInt, Bytes, ethereum } from "@graphprotocol/graph-ts";
+import { Token, Activity, Account, Offer, Listing } from "../../generated/schema";
+import { NULL_ADDRESS, ZERO_BIGINT, ZERO_DECIMAL } from "../constants";
+import { generateUID } from "../utils";
 
 export function createActivity(
     type: string, 
-    block: ethereum.Block, 
-    tx: ethereum.Transaction, 
-    logIndex: BigInt,
-    token: Token | null, 
-    collection: Address | null,
-    from: Address | null,
+    event: ethereum.Event,
+    token: Token, 
+    from: Address,
     to: Address | null, 
     quantity: BigInt = ZERO_BIGINT, 
     currency: Bytes = NULL_ADDRESS,
-    price: BigInt = ZERO_BIGINT
+    price: BigDecimal = ZERO_DECIMAL
 ): void {
-    const activityUID = tx.hash.toHex() + "-" + logIndex.toString();
-    let activity = new Activity(activityUID);
-    activity.activityType = type;
-    activity.txHash = tx.hash.toHex();
-    activity.blockHash = block.hash.toHex();
-    activity.timestamp = block.timestamp; 
+    const block             = event.block
+    const tx                = event.transaction
+    const id                = tx.hash.toHex() + "-" + event.logIndex.toString()
 
-    let actualFrom: Address;
-    if (from) {
-        actualFrom = from;
-    } else {
-        actualFrom = tx.from;
-    }
+    let activity            = new Activity(id)
+    activity.activityType   = type
+    activity.txHash         = tx.hash.toHex()
+    activity.blockHash      = block.hash.toHex()
+    activity.timestamp      = block.timestamp 
+    activity.from           = from.toHex()
+    activity.to             = to ? to.toHex() : null
+    activity.collection     = token.collection
+    activity.token          = token.id
+    activity.quantity       = quantity
+    activity.currency       = currency
+    activity.price          = price
     
-    let actualTo: Address;
-    if (to) {
-        actualTo = to;
-    } else {
-        actualTo = NULL_ADDRESS;
-    }
-    activity.from = actualFrom.toHex();
-    activity.to = actualTo.toHex();
-
-    if (token) {
-        activity.collection = token.collection;
-        activity.token = token.id;
-        activity.quantity = quantity;
-        activity.currency = currency;
-        activity.price = price;
-    } else if (collection) {
-        activity.collection = collection.toHex();
-    }
     activity.save();
+}
+
+export function createOrLoadOffer(listing: Listing, offeror: Account): Offer {
+    const id            = generateUID([listing.id, offeror.id])
+    let offer           = Offer.load(id) 
+    
+    if (offer == null) {
+        offer           = new Offer(id)
+        offer.listing   = listing.id
+        offer.offeror   = offeror.id
+    }
+
+    return offer
 }

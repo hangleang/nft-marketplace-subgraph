@@ -83,42 +83,33 @@ export function createOrLoadCollection(address: Address, currentTimestamp: BigIn
   return collection;
 }
 
-export function setCollectionDropDetail(address: Address, dropDetailUID: string): void {
-  const collection = Collection.load(address.toHex());
-
-  if (collection) {
-    collection.dropDetails = dropDetailUID;
-    collection.save();
-  }
-}
-
 function generateCollectionStatsUID(collection: Address): string {
   return generateUID([collection.toHex(), STATS_POSTFIX])
 }
 
-export function createOrLoadCollectionStats(collection: Address): CollectionStats {
-  const statsUID = generateCollectionStatsUID(collection);
-  let stats = CollectionStats.load(statsUID);
+function createOrLoadCollectionStats(collection: Address): CollectionStats {
+  const statsUID      = generateCollectionStatsUID(collection)
+  let stats           = CollectionStats.load(statsUID)
 
-  if (!stats) {
-    stats = new CollectionStats(statsUID)
-    stats.collection = collection.toHex();
-    stats.listed = ZERO_BIGINT;
-    stats.sales = ZERO_BIGINT;
-    stats.volume = ZERO_BIGINT;
-    stats.highestSale = ZERO_DECIMAL;
-    stats.floorPrice = ZERO_DECIMAL;
-    stats.averagePrice = ZERO_DECIMAL;
-    stats.save();
+  if (stats == null) {
+    stats             = new CollectionStats(statsUID)
+    stats.collection  = collection.toHex()
+    stats.listed      = ZERO_BIGINT
+    stats.sales       = ZERO_BIGINT
+    stats.volume      = ZERO_BIGINT
+    stats.highestSale = ZERO_DECIMAL
+    stats.floorPrice  = ZERO_DECIMAL
+    stats.averagePrice = ZERO_DECIMAL
+    stats.save()
   }
-  return stats;
+  return stats
 }
 
 export function updateCollectionStatsList(collection: Address, quantity: BigInt, isAddUp: bool): void {
   const statsUID = generateCollectionStatsUID(collection);
   const stats = CollectionStats.load(statsUID);
 
-  if (stats) {
+  if (stats != null) {
     if (isAddUp) {
       stats.listed = stats.listed.plus(quantity);
     } else {
@@ -133,7 +124,7 @@ export function updateCollectionStats(collection: Address, quantity: BigInt, tot
   const pricePerToken = totalPaid.toBigDecimal().div(quantity.toBigDecimal());
   const stats = CollectionStats.load(statsUID);
 
-  if (stats) {
+  if (stats != null) {
     stats.listed = stats.listed.minus(quantity);
     stats.sales = stats.sales.plus(quantity);
     stats.volume = stats.volume.plus(totalPaid);

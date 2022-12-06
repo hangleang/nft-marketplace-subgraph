@@ -1,4 +1,4 @@
-import { BigDecimal, ipfs, json, JSONValue, JSONValueKind, log, TypedMap } from "@graphprotocol/graph-ts";
+import { BigDecimal, BigInt, ipfs, json, JSONValue, JSONValueKind, log, TypedMap } from "@graphprotocol/graph-ts";
 // import fetch, { Response } from 'node-fetch'
 
 const URI_CONTAINS: string = "://";
@@ -61,6 +61,13 @@ export function isIPFS(uri: string): boolean {
 
 export function isURI(uri: string): bool {
     return uri.includes(URI_CONTAINS);
+}
+
+export function replaceURI(uri: string, tokenId: BigInt): string {
+	return uri.replaceAll(
+		'{id}',
+		tokenId.toString(),
+	)
 }
 
 export function metadataURIToCID(uri: string): string | null {
