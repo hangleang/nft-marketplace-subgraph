@@ -1,12 +1,15 @@
-import { Address, BigInt, JSONValue, JSONValueKind } from "@graphprotocol/graph-ts";
+import { Address, BigInt, ethereum, JSONValue, JSONValueKind } from "@graphprotocol/graph-ts";
 import { decimals } from '@amxx/graphprotocol-utils'
 import { TokenBalance, Collection, Token, Account, Attribute } from "../../generated/schema";
 import { NULL_ADDRESS, ZERO_BIGINT, ZERO_DECIMAL } from "../constants";
-import { concatImageIPFS, generateUID, getString, isIPFS, isURI, loadContentFromURI } from "../utils";
-import * as collections from '../constants/collections';
+import { concatImageIPFS, generateUID, getString, isIPFS, isURI, loadContentFromURI, replaceURI } from "../utils";
 import { IERC721 } from "../../generated/ERC721/IERC721";
 import { IERC1155 } from "../../generated/ERC1155/IERC1155";
 import { createOrLoadAccount } from "./account";
+import { createActivity } from "./activity";
+
+import * as collections from '../constants/collections';
+import * as activities from '../constants/activities';
 
 const TOTAL_SUPPLY_POSTFIX: string = 'totalSupply'
 
@@ -110,7 +113,41 @@ export function createOrLoadTokenBalance(token: Token, owner: Account | null): T
     return balance
 }
 
-export function transferTokenBalance(token: Token, from: Account, to: Account, value: BigInt): void {
+export function registerTransfer(
+	event: ethereum.Event,
+	collection: Collection,
+	// operator: Account,
+	from: Account,
+	to: Account,
+	tokenId: BigInt,
+	value: BigInt,
+    timestamp: BigInt
+): void {
+    const token         = createOrLoadToken(collection, tokenId, timestamp)
+                
+    const fromAddress   = Address.fromString(from.id)
+    const toAddress     = Address.fromString(to.id)
+    // if mintEvent, set creator address
+    // else transferEvent, reset approval
+    if (fromAddress == NULL_ADDRESS) {
+        token.creator   = to.id;
+
+        // Create mint activity entity
+        createActivity(activities.MINTED, event, token, toAddress, null)
+    } else {
+        token.approval  = createOrLoadAccount(NULL_ADDRESS).id // implicit approval reset on transfer
+
+        // Create transfer activity entity
+        createActivity(activities.TRANSFERRED, event, token, fromAddress, toAddress)
+    }
+
+    // Update both parties token balances (ownership)
+    transferTokenBalance(token, from, to, value)
+
+    token.save()
+}
+
+function transferTokenBalance(token: Token, from: Account, to: Account, value: BigInt): void {
     if (Address.fromString(from.id) == NULL_ADDRESS) {
 		let totalSupply        = createOrLoadTokenBalance(token, null)
 		totalSupply.valueExact = totalSupply.valueExact.plus(value)
@@ -136,6 +173,7 @@ export function transferTokenBalance(token: Token, from: Account, to: Account, v
 	}
 }
 
+
 function createOrUpdateTokenAttribute(token: Token, key: number, displayType: string | null, traitType: string | null, value: JSONValue | null): void {
     const id            = generateTokenAttributeUID(token, key)
     let attribute       = Attribute.load(id)
@@ -159,7 +197,7 @@ function createOrUpdateTokenAttribute(token: Token, key: number, displayType: st
     attribute.save()
 }
 
-export function generateTokenUID(collection: Address, tokenID: BigInt): string {
+function generateTokenUID(collection: Address, tokenID: BigInt): string {
     return generateUID([collection.toHex(), tokenID.toString()], ":")
 }
 
@@ -176,20 +214,4 @@ function generateTokenName(collectionAddress: Address, tokenID: BigInt): string 
       collectionName = "Untitled Collection";
     }
     return generateUID([collectionName, `#${tokenID}`], " ");
-}
-
-export function replaceURI(uri: string, tokenId: BigInt): string {
-	return uri.replaceAll(
-		'{id}',
-		tokenId.toHex().slice(2).padStart(64, '0'),
-	)
-}
-
-export function setTokenDropDetail(tokenUID: string, dropDetailUID: string): void {
-    const token = Token.load(tokenUID);
-
-    if (token) {
-        token.dropDetails = dropDetailUID;
-        token.save();
-    }
 }

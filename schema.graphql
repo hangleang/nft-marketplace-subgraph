@@ -76,7 +76,6 @@ type Token @entity {
   youtubeURL: String
 
   # misc
-  isLazyMinted: Boolean
   dropDetails: DropDetail
 
   activities: [Activity!]! @derivedFrom(field: "token")
@@ -102,10 +101,7 @@ type Listing @entity {
   
   createdAt: BigInt!
   updatedAt: BigInt!
-  removedAt: BigInt
   soldAt: BigInt
-  closedAt: BigInt
-  isCancelled: Boolean # null, for active status; true, for cancel auction; false, for close auction
 }
 
 # event-based entities
@@ -146,7 +142,7 @@ type Activity @entity(immutable: true) {
   token: Token
   activityType: ActivityType!
   currency: Bytes
-  price: BigInt
+  price: BigDecimal
   quantity: BigInt
 
   # transaction
@@ -187,9 +183,9 @@ type Attribute @entity {
 
 type DropDetail @entity {
   id: ID!
-  startClaimConditionID: BigInt!
+  startClaimConditionId: BigInt!
   count: BigInt!
-  supplyClaimed: BigInt!
+  maxTotalSupply: BigInt!
   claimConditions: [DropClaimCondition!]! @derivedFrom(field: "drop")
 }
 
@@ -198,7 +194,10 @@ type DropClaimCondition @entity {
   drop: DropDetail!
   startTimestamp: BigInt!
   maxClaimableSupply: BigInt!
+  # supplyClaimed: BigInt!
   quantityLimit: BigInt!
+  waitBetweenClaims: BigInt!
+  merkleRoot: Bytes!
   price: BigInt!
   currency: Bytes!
 }
@@ -213,10 +212,6 @@ type DropClaimCondition @entity {
 # types
 
 enum CollectionType {
-  # ERC1155Drop,
-  # ERC1155Token,
-  # ERC721Drop,
-  # ERC721Token
   SingleEdition,
   MultiEdition
 }
@@ -227,79 +222,78 @@ enum ListingType {
 }
 
 enum ActivityType {
-  CreateCollection,
   Claimed,
   Minted,
   Transferred,
   List,
   MakeOffer,
-  Sold,
+  Sale,
   UpdateListing,
   CloseAuction,
   Unlist,
 }
 
 # fullTextSearch
-type _Schema_
+# type _Schema_
 
-@fulltext(
-  name: "accountSearch"
-  language: en
-  algorithm: proximityRank
-  include: [
-    {
-      entity: "Account",
-      fields: [
-        { name: "id" }
-      ]
-    }
-  ]
-)
+# @fulltext(
+#   name: "accountSearch"
+#   language: en
+#   algorithm: proximityRank
+#   include: [
+#     {
+#       entity: "Account",
+#       fields: [
+#         { name: "id" }
+#       ]
+#     }
+#   ]
+# )
 
-@fulltext(
-  name: "collectionsSearch"
-  language: en
-  algorithm: proximityRank
-  include: [
-    {
-      entity: "Collection",
-      fields: [
-        { name: "id" },
-        { name: "name" },
-        { name: "symbol" },
-        { name: "description" },
-      ]
-    }
-  ]
-)
+# @fulltext(
+#   name: "collectionsSearch"
+#   language: en
+#   algorithm: proximityRank
+#   include: [
+#     {
+#       entity: "Collection",
+#       fields: [
+#         { name: "id" },
+#         { name: "name" },
+#         { name: "symbol" },
+#         { name: "description" },
+#       ]
+#     }
+#   ]
+# )
 
-@fulltext(
-  name: "itemSearch"
-  language: en
-  algorithm: proximityRank
-  include: [
-    {
-      entity: "Token",
-      fields: [
-        { name: "id" },
-        { name: "name" },
-        { name: "description" },
-      ]
-    }
-  ]
-)
+# @fulltext(
+#   name: "itemSearch"
+#   language: en
+#   algorithm: proximityRank
+#   include: [
+#     {
+#       entity: "Token",
+#       fields: [
+#         { name: "id" },
+#         { name: "name" },
+#         { name: "description" },
+#       ]
+#     }
+#   ]
+# )
 
-@fulltext(
-  name: "activitySearch"
-  language: en
-  algorithm: proximityRank
-  include: [
-    {
-      entity: "Activity",
-      fields: [
-        { name: "txHash" },
-        { name: "blockHash" },
-      ]
-    }
-  ]
-)
+# @fulltext(
+#   name: "activitySearch"
+#   language: en
+#   algorithm: proximityRank
+#   include: [
+#     {
+#       entity: "Activity",
+#       fields: [
+#         { name: "txHash" },
+#         { name: "blockHash" },
+#       ]
+#     }
+#   ]
+# )
