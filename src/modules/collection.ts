@@ -16,6 +16,8 @@ export function createOrLoadCollection(address: Address, currentTimestamp: BigIn
   let introspection_01ffc9a7 = supportsInterface(contract, '01ffc9a7') // ERC165
   let introspection_80ac58cd = supportsInterface(contract, '80ac58cd') // ERC721
   let introspection_d9b67a26 = supportsInterface(contract, 'd9b67a26') // ERC1155
+  let introspection_5b5e139f = supportsInterface(contract, '5b5e139f') // ERC721Metadata
+  let introspection_0e89341c = supportsInterface(contract, '0e89341c') // ERC1155Metadata_URI
   let introspection_00000000 = supportsInterface(contract, '00000000', false)
   let isERC721               = introspection_01ffc9a7 && introspection_80ac58cd && introspection_00000000
   let isERC1155              = introspection_01ffc9a7 && introspection_d9b67a26 && introspection_00000000
@@ -62,13 +64,16 @@ export function createOrLoadCollection(address: Address, currentTimestamp: BigIn
         collection.fallbackURL    = getString(content, "fallback_url")
       }
     }
-
-    if (isERC721) {
-      collection.collectionType   = collections.SINGLE           
-      collection.supportsMetadata = supportsInterface(contract, '5b5e139f') // ERC721Metadata
+    
+    if (isERC721 && isERC1155) {
+      collection.collectionType   = collections.SEMI // ERC721ERC1155
+      collection.supportsMetadata = introspection_5b5e139f || introspection_0e89341c // ERC721Metadata || ERC1155Metadata_URI
+    } else if (isERC721) {
+      collection.collectionType   = collections.SINGLE // ERC721        
+      collection.supportsMetadata = introspection_5b5e139f // ERC721Metadata
     } else if (isERC1155) {
-      collection.collectionType   = collections.MULTI
-      collection.supportsMetadata = supportsInterface(contract, '0e89341c') // ERC1155Metadata_URI
+      collection.collectionType   = collections.MULTI // ERC1155
+      collection.supportsMetadata = introspection_0e89341c // ERC1155Metadata_URI
     }
 
     // Create collection stats entity

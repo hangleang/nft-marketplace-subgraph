@@ -9,17 +9,16 @@ import {
     TokensClaimed as TokensClaimedEvent,
     IERC1155Drop
 } from '../generated/ERC1155/IERC1155Drop';
-import { ONE_BIGINT } from './constants';
 import { createOrLoadAccount } from './modules/account';
 import { createOrLoadCollection } from './modules/collection';
-import { createOrLoadToken, registerTransfer, updateTokenMetadata } from './modules/token';
 import { createActivity } from './modules/activity';
+import { createOrLoadOperator } from './modules/operator';
+import { createOrLoadToken, registerTransfer, updateTokenMetadata } from './modules/token';
+import { createOrLoadDropDetails, generateDropClaimConditionUID, createOrLoadDropClaimCondition } from './modules/drop';
 
 import * as activities from './constants/activities';
-import { createOrLoadOperator } from './modules/operator';
-import { createOrLoadERC1155DropClaimCondition, createOrLoadDropDetails, generateDropClaimConditionUID, generateDropDetailsUID } from './modules/drop';
+import { ONE_BIGINT } from './constants';
 import { store } from '@graphprotocol/graph-ts';
-import { DropClaimCondition } from '../generated/schema';
 import { replaceURI } from './utils';
 
 export function handleTransferSingle(event: TransferSingleEvent): void {
@@ -109,7 +108,7 @@ export function handleTokensLazyMinted(event: TokensLazyMintedEvent): void {
     // Try create new collection entity, if not yet exist
     const collection    = createOrLoadCollection(event.address, currentBlock.timestamp)
     if (collection != null) {
-        for (let tokenId = startTokenId; tokenId <= endTokenId; tokenId.plus(ONE_BIGINT)) {
+        for (let tokenId = startTokenId; tokenId <= endTokenId; tokenId = tokenId.plus(ONE_BIGINT)) {
             const token         = createOrLoadToken(collection, tokenId, currentBlock.timestamp)
             const dropDetail    = createOrLoadDropDetails(token.id)
 
@@ -189,7 +188,15 @@ export function handleClaimConditionsUpdated(event: ClaimConditionsUpdatedEvent)
             if (!try_claimCondition.reverted) {
                 const claimCondition = try_claimCondition.value
 
-                createOrLoadERC1155DropClaimCondition(dropDetail, claimConditionID, claimCondition)
+                const dropCondition = createOrLoadDropClaimCondition(dropDetail, claimConditionID)
+                dropCondition.startTimestamp        = claimCondition.startTimestamp
+                dropCondition.maxClaimableSupply    = claimCondition.maxClaimableSupply
+                dropCondition.quantityLimit         = claimCondition.quantityLimitPerTransaction
+                dropCondition.waitBetweenClaims     = claimCondition.waitTimeInSecondsBetweenClaims
+                dropCondition.merkleRoot            = claimCondition.merkleRoot
+                dropCondition.price                 = claimCondition.pricePerToken
+                dropCondition.currency              = claimCondition.currency
+                dropCondition.save();
             }
         }
 
@@ -212,14 +219,10 @@ export function handleTokensClaimed(event: TokensClaimedEvent): void {
         createOrLoadAccount(claimerAddress)
         createOrLoadAccount(receiverAddress)
 
-        const id            = generateDropClaimConditionUID(generateDropDetailsUID(token.id), claimIdx)
-        const claimCondition = DropClaimCondition.load(id)
+        const dropDetail    = createOrLoadDropDetails(token.id)
+        const dropCondition = createOrLoadDropClaimCondition(dropDetail, claimIdx)
 
         // Create claimed activity entity
-        if (claimCondition) {
-            createActivity(activities.CLAIMED, event, token, claimerAddress, receiverAddress, quantity, claimCondition.currency, claimCondition.price.toBigDecimal());
-        } else {
-            createActivity(activities.CLAIMED, event, token, claimerAddress, receiverAddress, quantity);
-        }
+        createActivity(activities.CLAIMED, event, token, claimerAddress, receiverAddress, quantity, dropCondition.currency, dropCondition.price.toBigDecimal());
     }
 }

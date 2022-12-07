@@ -4,6 +4,7 @@ import { TokenBalance, Collection, Token, Account, Attribute } from "../../gener
 import { NULL_ADDRESS, ZERO_BIGINT, ZERO_DECIMAL } from "../constants";
 import { concatImageIPFS, generateUID, getString, isIPFS, isURI, loadContentFromURI, replaceURI } from "../utils";
 import { IERC721 } from "../../generated/ERC721/IERC721";
+import { IERC721ERC1155 } from "../../generated/ERC721/IERC721ERC1155";
 import { IERC1155 } from "../../generated/ERC1155/IERC1155";
 import { createOrLoadAccount } from "./account";
 import { createActivity } from "./activity";
@@ -27,7 +28,12 @@ export function createOrLoadToken(collection: Collection, tokenId: BigInt, curre
 
         let tokenURI = '';
         if (collection.supportsMetadata) {
-            if (collection.collectionType == collections.SINGLE) {
+            if (collection.collectionType == collections.SEMI) {
+                let asset           = IERC721ERC1155.bind(collectionAddress)
+                let try_uri         = asset.try_uri(tokenId)
+                let try_tokenURI    = asset.try_tokenURI(tokenId)
+                tokenURI            = try_uri.reverted ? try_tokenURI.reverted ? '' : try_tokenURI.value : try_uri.value
+            } else if (collection.collectionType == collections.SINGLE) {
                 let erc721          = IERC721.bind(collectionAddress)
                 let try_tokenURI    = erc721.try_tokenURI(tokenId)
                 tokenURI            = try_tokenURI.reverted ? '' : try_tokenURI.value
@@ -37,6 +43,7 @@ export function createOrLoadToken(collection: Collection, tokenId: BigInt, curre
                 tokenURI            = try_uri.reverted ? '' : replaceURI(try_uri.value, tokenId)
             }
         }
+
         if (tokenURI != '') {
             // fetch metadata from IPFS URI, then set metadata fields
             token          = updateTokenMetadata(token, tokenURI)
@@ -63,6 +70,7 @@ export function updateTokenMetadata(token: Token, tokenURI: string): Token {
     if (content) {
         const name          = getString(content, "name")
         const image         = getString(content, "image")
+        const decimals      = content.get("decimals")
         token.name          = name ? name : generatedName
         token.description   = getString(content, "description")
         token.contentURI    = image ? isURI(image) ? image : concatImageIPFS(tokenURI, image) : null
@@ -71,6 +79,10 @@ export function updateTokenMetadata(token: Token, tokenURI: string): Token {
         token.bgColor       = getString(content, "background_color")
         token.animationURL  = getString(content, "animation_url")
         token.youtubeURL    = getString(content, "youtube_url")
+
+        if (decimals && decimals.kind == JSONValueKind.NUMBER) {
+            token.decimals  = decimals.toBigInt().toI32()
+        }
 
         // get attributes link to this token
         const attributes    = content.get("attributes")
@@ -148,27 +160,29 @@ export function registerTransfer(
 }
 
 function transferTokenBalance(token: Token, from: Account, to: Account, value: BigInt): void {
+    const tokenDecimals  = token.decimals ? token.decimals : 1
+
     if (Address.fromString(from.id) == NULL_ADDRESS) {
 		let totalSupply        = createOrLoadTokenBalance(token, null)
 		totalSupply.valueExact = totalSupply.valueExact.plus(value)
-		totalSupply.value      = decimals.toDecimals(totalSupply.valueExact)
+		totalSupply.value      = decimals.toDecimals(totalSupply.valueExact, tokenDecimals)
 		totalSupply.save()
 	} else {
 		let balance            = createOrLoadTokenBalance(token, from)
 		balance.valueExact     = balance.valueExact.minus(value)
-		balance.value          = decimals.toDecimals(balance.valueExact)
+		balance.value          = decimals.toDecimals(balance.valueExact, tokenDecimals)
 		balance.save()
 	}
 
 	if (Address.fromString(to.id) == NULL_ADDRESS) {
 		let totalSupply        = createOrLoadTokenBalance(token, null)
 		totalSupply.valueExact = totalSupply.valueExact.minus(value)
-		totalSupply.value      = decimals.toDecimals(totalSupply.valueExact)
+		totalSupply.value      = decimals.toDecimals(totalSupply.valueExact, tokenDecimals)
 		totalSupply.save()
 	} else {
 		let balance            = createOrLoadTokenBalance(token, to)
 		balance.valueExact     = balance.valueExact.plus(value)
-		balance.value          = decimals.toDecimals(balance.valueExact)
+		balance.value          = decimals.toDecimals(balance.valueExact, tokenDecimals)
 		balance.save()
 	}
 }

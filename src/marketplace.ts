@@ -16,11 +16,11 @@ import { createOrLoadMarketplace, increaseMarketplaceVersion } from "./modules/m
 import { createOrLoadAccount } from "./modules/account";
 import { createOrLoadToken } from "./modules/token";
 import { createOrLoadCollection, updateCollectionStats, updateCollectionStatsList } from "./modules/collection";
-import { ZERO_BIGINT } from "./constants";
-import { generateUID } from "./utils";
 
 import * as activities from './constants/activities';
-import { Address, BigDecimal, Bytes, store } from "@graphprotocol/graph-ts";
+import { ZERO_BIGINT } from "./constants";
+import { Address, Bytes, store } from "@graphprotocol/graph-ts";
+import { generateUID } from "./utils";
 
 export function handleInitialized(event: Initialized): void {
   createOrLoadMarketplace(event.block.timestamp);
@@ -205,7 +205,7 @@ export function handleNewSale(event: NewSale): void {
         // get currency address which's used to make offer or buyout for the listing
         let currency: Bytes;
         const offer = Offer.load(generateUID([listing.id, buyer.id]));
-        if (offer) {
+        if (offer != null) {
           currency = offer.currency;
         } else {
           currency = listing.currency;
