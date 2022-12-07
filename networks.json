@@ -1,4 +1,16 @@
 {
+  "mainnet": {
+    "Marketplace": {
+      "address": "",
+      "startBlock": 5806610
+    },
+    "ERC721": {
+      "startBlock": 5806610
+    },
+    "ERC1155":  {
+      "startBlock": 6930510
+    }
+  },
   "mumbai": {
     "Marketplace": {
       "address": "0xC10c4A2F88924222fB33B048b494318cdE757DB8",

@@ -1,7 +1,9 @@
-import { Address, BigDecimal, BigInt, Bytes, ethereum } from "@graphprotocol/graph-ts";
+import { Address, BigDecimal, BigInt, Bytes, ethereum, log } from "@graphprotocol/graph-ts";
 import { Token, Activity, Account, Offer, Listing } from "../../generated/schema";
 import { NULL_ADDRESS, ZERO_BIGINT, ZERO_DECIMAL } from "../constants";
 import { generateUID } from "../utils";
+
+import * as activities from '../constants/activities';
 
 export function createActivity(
     type: string, 
@@ -15,7 +17,11 @@ export function createActivity(
 ): void {
     const block             = event.block
     const tx                = event.transaction
-    const id                = tx.hash.toHex() + "-" + event.logIndex.toString()
+    let id                = tx.hash.toHex() + "-" + event.logIndex.toString()
+    if (type == activities.CLAIMED) {
+        id = id + "-" + token.tokenId.toString()
+    }
+    log.info("event {} with id:{}", [type, id])
 
     let activity            = new Activity(id)
     activity.activityType   = type
@@ -29,7 +35,6 @@ export function createActivity(
     activity.quantity       = quantity
     activity.currency       = currency
     activity.price          = price
-    
     activity.save();
 }
 

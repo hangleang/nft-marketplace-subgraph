@@ -66,6 +66,7 @@ type Token @entity {
   isIPFS: Boolean!
   tokenURI: String
   name: String!
+  decimals: Int
   description: String
   contentURI: String
   externalURL: String
@@ -213,7 +214,8 @@ type DropClaimCondition @entity {
 
 enum CollectionType {
   SingleEdition,
-  MultiEdition
+  MultiEdition,
+  SemiMultiEdition
 }
 
 enum ListingType {

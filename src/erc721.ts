@@ -9,16 +9,15 @@ import {
     NFTRevealed as NFTRevealedEvent,
     IERC721Drop
 } from '../generated/ERC721/IERC721Drop';
-import { DropClaimCondition } from '../generated/schema';
-import { ONE_BIGINT } from './constants';
 import { createOrLoadCollection } from './modules/collection';
 import { createOrLoadToken, registerTransfer, updateTokenMetadata } from './modules/token';
 import { createOrLoadAccount } from './modules/account';
 import { createOrLoadOperator } from './modules/operator';
-import { createOrLoadERC721DropClaimCondition, createOrLoadDropDetails, generateDropClaimConditionUID, generateDropDetailsUID } from './modules/drop';
+import { createOrLoadDropClaimCondition, createOrLoadDropDetails, generateDropClaimConditionUID } from './modules/drop';
 import { createActivity } from './modules/activity';
 
 import { store } from '@graphprotocol/graph-ts';
+import { ONE_BIGINT } from './constants';
 import * as activities from './constants/activities';
 import { replaceURI } from './utils';
 
@@ -157,7 +156,15 @@ export function handleClaimConditionsUpdated(event: ClaimConditionsUpdatedEvent)
             if (!try_claimCondition.reverted) {
                 const claimCondition = try_claimCondition.value
 
-                createOrLoadERC721DropClaimCondition(dropDetail, claimConditionID, claimCondition)
+                const dropCondition = createOrLoadDropClaimCondition(dropDetail, claimConditionID)
+                dropCondition.startTimestamp        = claimCondition.startTimestamp
+                dropCondition.maxClaimableSupply    = claimCondition.maxClaimableSupply
+                dropCondition.quantityLimit         = claimCondition.quantityLimitPerTransaction
+                dropCondition.waitBetweenClaims     = claimCondition.waitTimeInSecondsBetweenClaims
+                dropCondition.merkleRoot            = claimCondition.merkleRoot
+                dropCondition.price                 = claimCondition.pricePerToken
+                dropCondition.currency              = claimCondition.currency
+                dropCondition.save();
             }
         }
     }
@@ -178,19 +185,15 @@ export function handleTokensClaimed(event: TokensClaimedEvent): void {
         createOrLoadAccount(claimerAddress)
         createOrLoadAccount(receiverAddress)
 
-        const id            = generateDropClaimConditionUID(generateDropDetailsUID(collection.id), claimIdx)
-        const claimCondition = DropClaimCondition.load(id)
+        const dropDetail    = createOrLoadDropDetails(collection.id)
+        const dropCondition = createOrLoadDropClaimCondition(dropDetail, claimIdx)
 
         const endTokenId    = startTokenId.plus(quantity)
-        for (let tokenId = startTokenId; tokenId <= endTokenId; tokenId.plus(ONE_BIGINT)) {
+        for (let tokenId = startTokenId; tokenId <= endTokenId; tokenId = tokenId.plus(ONE_BIGINT)) {
             let token       = createOrLoadToken(collection, tokenId, currentBlock.timestamp)
-    
+
             // Create claimed activity entity
-            if (claimCondition) {
-                createActivity(activities.CLAIMED, event, token, claimerAddress, receiverAddress, ONE_BIGINT, claimCondition.currency, claimCondition.price.toBigDecimal());
-            } else {
-                createActivity(activities.CLAIMED, event, token, claimerAddress, receiverAddress, ONE_BIGINT);
-            }
+            createActivity(activities.CLAIMED, event, token, claimerAddress, receiverAddress, ONE_BIGINT, dropCondition.currency, dropCondition.price.toBigDecimal())
         }
     }
 }
@@ -205,7 +208,7 @@ export function handleNFTRevealed(event: NFTRevealedEvent): void {
     // Try create new collection entity, if not yet exist
     const collection        = createOrLoadCollection(event.address, currentBlock.timestamp)
     if (collection != null) {
-        for (let tokenId = startTokenId; tokenId <= endTokenId; tokenId.plus(ONE_BIGINT)) {
+        for (let tokenId = startTokenId; tokenId <= endTokenId; tokenId = tokenId.plus(ONE_BIGINT)) {
             let token       = createOrLoadToken(collection, tokenId, currentBlock.timestamp)
             const tokenURI  = replaceURI(revealedURI, tokenId)
             token           = updateTokenMetadata(token, tokenURI)
