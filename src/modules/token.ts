@@ -4,8 +4,8 @@ import { TokenBalance, Collection, Token, Account, Attribute } from "../../gener
 import { NULL_ADDRESS, ZERO_BIGINT, ZERO_DECIMAL } from "../constants";
 import { concatImageIPFS, generateUID, getString, isIPFS, isURI, loadContentFromURI, replaceURI } from "../utils";
 import { IERC721 } from "../../generated/ERC721/IERC721";
-import { IERC721ERC1155 } from "../../generated/ERC721/IERC721ERC1155";
 import { IERC1155 } from "../../generated/ERC1155/IERC1155";
+import { IERC721ERC1155 } from "../../generated/ERC1155/IERC721ERC1155";
 import { createOrLoadAccount } from "./account";
 import { createActivity } from "./activity";
 
@@ -26,31 +26,53 @@ export function createOrLoadToken(collection: Collection, tokenId: BigInt, curre
         token.totalSupply   = createOrLoadTokenBalance(token, null).id
         token.approval      = createOrLoadAccount(NULL_ADDRESS).id
 
+        // implicit set non-null fields with default value, in case no metadataURI
+        token.isIPFS   = false
+        token.decimals = 1
+        token.name     = generateTokenName(collectionAddress, token.tokenId)
+
         let tokenURI = '';
         if (collection.supportsMetadata) {
-            if (collection.collectionType == collections.SEMI) {
-                let asset           = IERC721ERC1155.bind(collectionAddress)
-                let try_uri         = asset.try_uri(tokenId)
-                let try_tokenURI    = asset.try_tokenURI(tokenId)
-                tokenURI            = try_uri.reverted ? try_tokenURI.reverted ? '' : try_tokenURI.value : try_uri.value
-            } else if (collection.collectionType == collections.SINGLE) {
-                let erc721          = IERC721.bind(collectionAddress)
-                let try_tokenURI    = erc721.try_tokenURI(tokenId)
+            if (collection.collectionType == collections.SINGLE) {
+                const erc721        = IERC721.bind(collectionAddress)
+                const try_tokenURI  = erc721.try_tokenURI(tokenId)
                 tokenURI            = try_tokenURI.reverted ? '' : try_tokenURI.value
             } else if (collection.collectionType == collections.MULTI) {
-                let erc1155         = IERC1155.bind(collectionAddress)
-                let try_uri         = erc1155.try_uri(tokenId)
+                const erc1155       = IERC1155.bind(collectionAddress)
+                const try_uri       = erc1155.try_uri(tokenId)
                 tokenURI            = try_uri.reverted ? '' : replaceURI(try_uri.value, tokenId)
+            } else if (collection.collectionType == collections.SEMI) {
+                const asset         = IERC721ERC1155.bind(collectionAddress)
+
+                let collectionId: BigInt
+                let isCollection = false
+                let owner: string | null = null
+                const try_owner = asset.try_ownerOf(tokenId)
+                
+                if (!try_owner.reverted) {
+                    owner = try_owner.value.toHex()
+                }
+                if (owner != null) {
+                    let try_collectionId = asset.try_collectionOf(tokenId)
+
+                    if (!try_collectionId.reverted) {
+                      collectionId = try_collectionId.value
+                      isCollection = true
+                    } else {
+                      collectionId = tokenId // a dual token minted as NFT straight away is its own collection
+                    }
+                } else {
+                    collectionId = tokenId
+                }
+
+                const try_uri           = isCollection ? asset.try_uri(collectionId) : asset.try_tokenURI(collectionId)
+                tokenURI                = try_uri.reverted ? '' : replaceURI(try_uri.value, tokenId)
             }
         }
 
         if (tokenURI != '') {
             // fetch metadata from IPFS URI, then set metadata fields
             token          = updateTokenMetadata(token, tokenURI)
-        } else {
-            // implicit set name, in case no metadataURI
-            token.isIPFS   = false;
-            token.name     = generateTokenName(collectionAddress, token.tokenId)
         }
 
         token.createdAt = currentTimestamp
@@ -70,7 +92,6 @@ export function updateTokenMetadata(token: Token, tokenURI: string): Token {
     if (content) {
         const name          = getString(content, "name")
         const image         = getString(content, "image")
-        const decimals      = content.get("decimals")
         token.name          = name ? name : generatedName
         token.description   = getString(content, "description")
         token.contentURI    = image ? isURI(image) ? image : concatImageIPFS(tokenURI, image) : null
@@ -79,9 +100,12 @@ export function updateTokenMetadata(token: Token, tokenURI: string): Token {
         token.bgColor       = getString(content, "background_color")
         token.animationURL  = getString(content, "animation_url")
         token.youtubeURL    = getString(content, "youtube_url")
-
-        if (decimals && decimals.kind == JSONValueKind.NUMBER) {
+        
+        const decimals      = content.get("decimals")
+        if (decimals != null && decimals.kind == JSONValueKind.NUMBER) {
             token.decimals  = decimals.toBigInt().toI32()
+        } else {
+            token.decimals  = 1
         }
 
         // get attributes link to this token
@@ -89,7 +113,7 @@ export function updateTokenMetadata(token: Token, tokenURI: string): Token {
         if (attributes) {
             if (attributes.kind == JSONValueKind.ARRAY) {
                 const attributesEntries = attributes.toArray()
-
+                    
                 for (let i = 0; i < attributesEntries.length; i++) {
                     const entry     = attributesEntries[i]
                     if (entry.kind == JSONValueKind.OBJECT) {
@@ -160,29 +184,27 @@ export function registerTransfer(
 }
 
 function transferTokenBalance(token: Token, from: Account, to: Account, value: BigInt): void {
-    const tokenDecimals  = token.decimals ? token.decimals : 1
-
     if (Address.fromString(from.id) == NULL_ADDRESS) {
 		let totalSupply        = createOrLoadTokenBalance(token, null)
 		totalSupply.valueExact = totalSupply.valueExact.plus(value)
-		totalSupply.value      = decimals.toDecimals(totalSupply.valueExact, tokenDecimals)
+		totalSupply.value      = decimals.toDecimals(totalSupply.valueExact, token.decimals)
 		totalSupply.save()
 	} else {
 		let balance            = createOrLoadTokenBalance(token, from)
 		balance.valueExact     = balance.valueExact.minus(value)
-		balance.value          = decimals.toDecimals(balance.valueExact, tokenDecimals)
+		balance.value          = decimals.toDecimals(balance.valueExact, token.decimals)
 		balance.save()
 	}
 
 	if (Address.fromString(to.id) == NULL_ADDRESS) {
 		let totalSupply        = createOrLoadTokenBalance(token, null)
 		totalSupply.valueExact = totalSupply.valueExact.minus(value)
-		totalSupply.value      = decimals.toDecimals(totalSupply.valueExact, tokenDecimals)
+		totalSupply.value      = decimals.toDecimals(totalSupply.valueExact, token.decimals)
 		totalSupply.save()
 	} else {
 		let balance            = createOrLoadTokenBalance(token, to)
 		balance.valueExact     = balance.valueExact.plus(value)
-		balance.value          = decimals.toDecimals(balance.valueExact, tokenDecimals)
+		balance.value          = decimals.toDecimals(balance.valueExact, token.decimals)
 		balance.save()
 	}
 }

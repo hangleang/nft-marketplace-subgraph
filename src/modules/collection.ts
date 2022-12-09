@@ -9,7 +9,6 @@ import { createOrLoadAccount } from "./account";
 import * as collections from '../constants/collections';
 
 export function createOrLoadCollection(address: Address, currentTimestamp: BigInt): Collection | null {
-  createOrLoadAccount(address)
   let contract = IERC165Metadata.bind(address);
 
   // Detect using ERC165
@@ -64,10 +63,10 @@ export function createOrLoadCollection(address: Address, currentTimestamp: BigIn
         collection.fallbackURL    = getString(content, "fallback_url")
       }
     }
-    
+
     if (isERC721 && isERC1155) {
-      collection.collectionType   = collections.SEMI // ERC721ERC1155
-      collection.supportsMetadata = introspection_5b5e139f || introspection_0e89341c // ERC721Metadata || ERC1155Metadata_URI
+      collection.collectionType   = collections.SEMI // ERC721ERC1155          
+      collection.supportsMetadata = introspection_5b5e139f && introspection_0e89341c // ERC721Metadata & ERC1155Metadata_URI
     } else if (isERC721) {
       collection.collectionType   = collections.SINGLE // ERC721        
       collection.supportsMetadata = introspection_5b5e139f // ERC721Metadata
@@ -83,6 +82,8 @@ export function createOrLoadCollection(address: Address, currentTimestamp: BigIn
     collection.createdAt          = currentTimestamp;
     collection.updatedAt          = currentTimestamp;
     collection.save()
+
+    // createOrLoadAccount(address)
   } 
 
   return collection;

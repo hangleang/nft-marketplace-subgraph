@@ -4,6 +4,10 @@ schema:
 features:
   - ipfsOnEthereumContracts
   - fullTextSearch
+  - grafting
+graft:
+  base: Qma7HTnQZj4aaPC8g8mexKcPSimTGES3VeQihsGDW1Psi1
+  block: 7927780
 dataSources:
   - kind: ethereum
     name: Marketplace
@@ -111,6 +115,8 @@ dataSources:
           file: ./abis/IERC165Metadata.json
         - name: IERC1155Drop
           file: ./abis/IERC1155Drop.json
+        - name: IERC721ERC1155
+          file: ./abis/IERC721ERC1155.json
       eventHandlers:
         - event: ApprovalForAll(indexed address,indexed address,bool)
           handler: handleApprovalForAll
