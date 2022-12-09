@@ -6,16 +6,16 @@ features:
   - fullTextSearch
   - grafting
 graft:
-  base: Qma7HTnQZj4aaPC8g8mexKcPSimTGES3VeQihsGDW1Psi1
-  block: 7927780
+  base: QmbCdJWA26x7W7nE8GadZsr5o7Wkr2BnsxPBiEUA437dEP
+  block: 28946931
 dataSources:
   - kind: ethereum
     name: Marketplace
-    network: goerli
+    network: mumbai
     source:
       abi: Marketplace
-      address: "0xd9a5fA95E554B124F07c0646a0eACAd9e00e06D2"
-      startBlock: 7925786
+      address: "0xC10c4A2F88924222fB33B048b494318cdE757DB8"
+      startBlock: 28851303
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -53,10 +53,10 @@ dataSources:
           handler: handleUpgraded
   - kind: ethereum
     name: ERC721
-    network: goerli
+    network: mumbai
     source:
       abi: IERC721Drop
-      startBlock: 7925786
+      startBlock: 28851285
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -69,6 +69,8 @@ dataSources:
       abis:
         - name: IERC721
           file: ./abis/IERC721Metadata.json
+        - name: IERC1155
+          file: ./abis/IERC1155MetadataURI.json
         - name: IERC165Metadata
           file: ./abis/IERC165Metadata.json
         - name: IERC721Drop
@@ -95,10 +97,10 @@ dataSources:
           handler: handleMaxTotalSupplyUpdated
   - kind: ethereum
     name: ERC1155
-    network: goerli
+    network: mumbai
     source:
       abi: IERC1155Drop
-      startBlock: 7925786
+      startBlock: 28851285
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -109,6 +111,8 @@ dataSources:
         - Token
         - Activity
       abis:
+        - name: IERC721
+          file: ./abis/IERC721Metadata.json
         - name: IERC1155
           file: ./abis/IERC1155MetadataURI.json
         - name: IERC165Metadata
