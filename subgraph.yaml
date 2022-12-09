@@ -6,8 +6,8 @@ features:
   - fullTextSearch
   - grafting
 graft:
-  base: QmbCdJWA26x7W7nE8GadZsr5o7Wkr2BnsxPBiEUA437dEP
-  block: 28946931
+  base: QmU6eKdN8BcsgnxxF5TPqcGNkx38hEhJsuQm1D632nndT4
+  block: 28855459
 dataSources:
   - kind: ethereum
     name: Marketplace

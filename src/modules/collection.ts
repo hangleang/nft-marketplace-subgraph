@@ -1,7 +1,7 @@
 import { Address, BigInt } from "@graphprotocol/graph-ts";
 import { Collection, CollectionStats } from "../../generated/schema";
 import { STATS_POSTFIX, ZERO_BIGINT, ZERO_DECIMAL } from "../constants";
-import { concatImageIPFS, generateUID, getMax, getMin, getString, isIPFS, isURI, loadContentFromURI } from "../utils";
+import { formateURI, generateUID, getMax, getMin, getString, isIPFS, loadContentFromURI } from "../utils";
 import { IERC165Metadata } from '../../generated/ERC721/IERC165Metadata';
 import { supportsInterface } from "./erc165";
 import { createOrLoadAccount } from "./account";
@@ -57,8 +57,8 @@ export function createOrLoadCollection(address: Address, currentTimestamp: BigIn
         const bannerImage         = getString(content, "banner_image")
         collection.name           = name ? name : nameFromContract
         collection.description    = getString(content, "description")
-        collection.featuredImage  = featuredImage ? isURI(featuredImage) ? featuredImage : concatImageIPFS(contractURI, featuredImage) : null
-        collection.bannerImage    = bannerImage ? isURI(bannerImage) ? bannerImage : concatImageIPFS(contractURI, bannerImage) : null
+        collection.featuredImage  = formateURI(featuredImage, contractURI)
+        collection.bannerImage    = formateURI(bannerImage, contractURI)
         collection.externalLink   = getString(content, "external_link")
         collection.fallbackURL    = getString(content, "fallback_url")
       }
