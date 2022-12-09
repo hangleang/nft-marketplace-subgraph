@@ -236,66 +236,64 @@ enum ActivityType {
 }
 
 # fullTextSearch
-# type _Schema_
+type _Schema_
 
-# @fulltext(
-#   name: "accountSearch"
-#   language: en
-#   algorithm: proximityRank
-#   include: [
-#     {
-#       entity: "Account",
-#       fields: [
-#         { name: "id" }
-#       ]
-#     }
-#   ]
-# )
+@fulltext(
+  name: "accountSearch"
+  language: en
+  algorithm: rank
+  include: [
+    {
+      entity: "Account",
+      fields: [
+        { name: "id" }
+      ]
+    }
+  ]
+)
 
-# @fulltext(
-#   name: "collectionsSearch"
-#   language: en
-#   algorithm: proximityRank
-#   include: [
-#     {
-#       entity: "Collection",
-#       fields: [
-#         { name: "id" },
-#         { name: "name" },
-#         { name: "symbol" },
-#         { name: "description" },
-#       ]
-#     }
-#   ]
-# )
+@fulltext(
+  name: "collectionsSearch"
+  language: en
+  algorithm: proximityRank
+  include: [
+    {
+      entity: "Collection",
+      fields: [
+        { name: "id" },
+        { name: "name" },
+        { name: "symbol" },
+      ]
+    }
+  ]
+)
 
-# @fulltext(
-#   name: "itemSearch"
-#   language: en
-#   algorithm: proximityRank
-#   include: [
-#     {
-#       entity: "Token",
-#       fields: [
-#         { name: "id" },
-#         { name: "name" },
-#         { name: "description" },
-#       ]
-#     }
-#   ]
-# )
+@fulltext(
+  name: "tokenSearch"
+  language: en
+  algorithm: proximityRank
+  include: [
+    {
+      entity: "Token",
+      fields: [
+        { name: "id" },
+        { name: "name" },
+      ]
+    }
+  ]
+)
 
-# @fulltext(
-#   name: "activitySearch"
-#   language: en
-#   algorithm: proximityRank
-#   include: [
-#     {
-#       entity: "Activity",
-#       fields: [
-#         { name: "txHash" },
-#         { name: "blockHash" },
-#       ]
-#     }
-#   ]
-# )
+@fulltext(
+  name: "activitySearch"
+  language: en
+  algorithm: rank
+  include: [
+    {
+      entity: "Activity",
+      fields: [
+        { name: "txHash" },
+        { name: "blockHash" },
+      ]
+    }
+  ]
+)

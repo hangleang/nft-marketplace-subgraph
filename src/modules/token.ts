@@ -2,7 +2,7 @@ import { Address, BigInt, ethereum, JSONValue, JSONValueKind } from "@graphproto
 import { decimals } from '@amxx/graphprotocol-utils'
 import { TokenBalance, Collection, Token, Account, Attribute } from "../../generated/schema";
 import { NULL_ADDRESS, ZERO_BIGINT, ZERO_DECIMAL } from "../constants";
-import { concatImageIPFS, generateUID, getString, isIPFS, isURI, loadContentFromURI, replaceURI } from "../utils";
+import { formateURI, generateUID, getString, isIPFS, loadContentFromURI, replaceURI } from "../utils";
 import { IERC721 } from "../../generated/ERC721/IERC721";
 import { IERC1155 } from "../../generated/ERC1155/IERC1155";
 import { IERC721ERC1155 } from "../../generated/ERC1155/IERC721ERC1155";
@@ -94,7 +94,7 @@ export function updateTokenMetadata(token: Token, tokenURI: string): Token {
         const image         = getString(content, "image")
         token.name          = name ? name : generatedName
         token.description   = getString(content, "description")
-        token.contentURI    = image ? isURI(image) ? image : concatImageIPFS(tokenURI, image) : null
+        token.contentURI    = formateURI(image, tokenURI)
         token.externalURL   = getString(content, "external_url")
         token.fallbackURL   = getString(content, "fallback_url")
         token.bgColor       = getString(content, "background_color")
