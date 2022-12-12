@@ -4,18 +4,14 @@ schema:
 features:
   - ipfsOnEthereumContracts
   - fullTextSearch
-  - grafting
-graft:
-  base: QmU6eKdN8BcsgnxxF5TPqcGNkx38hEhJsuQm1D632nndT4
-  block: 28855459
 dataSources:
   - kind: ethereum
     name: Marketplace
-    network: mumbai
+    network: goerli
     source:
       abi: Marketplace
-      address: "0xC10c4A2F88924222fB33B048b494318cdE757DB8"
-      startBlock: 28851303
+      address: "0xd9a5fA95E554B124F07c0646a0eACAd9e00e06D2"
+      startBlock: 7925786
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -53,10 +49,10 @@ dataSources:
           handler: handleUpgraded
   - kind: ethereum
     name: ERC721
-    network: mumbai
+    network: goerli
     source:
       abi: IERC721Drop
-      startBlock: 28851285
+      startBlock: 7925786
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -97,10 +93,10 @@ dataSources:
           handler: handleMaxTotalSupplyUpdated
   - kind: ethereum
     name: ERC1155
-    network: mumbai
+    network: goerli
     source:
       abi: IERC1155Drop
-      startBlock: 28851285
+      startBlock: 7925786
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
