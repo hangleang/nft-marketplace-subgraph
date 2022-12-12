@@ -239,20 +239,6 @@ enum ActivityType {
 type _Schema_
 
 @fulltext(
-  name: "accountSearch"
-  language: en
-  algorithm: rank
-  include: [
-    {
-      entity: "Account",
-      fields: [
-        { name: "id" }
-      ]
-    }
-  ]
-)
-
-@fulltext(
   name: "collectionsSearch"
   language: en
   algorithm: proximityRank
@@ -283,17 +269,31 @@ type _Schema_
   ]
 )
 
-@fulltext(
-  name: "activitySearch"
-  language: en
-  algorithm: rank
-  include: [
-    {
-      entity: "Activity",
-      fields: [
-        { name: "txHash" },
-        { name: "blockHash" },
-      ]
-    }
-  ]
-)
+# @fulltext(
+#   name: "accountSearch"
+#   language: en
+#   algorithm: rank
+#   include: [
+#     {
+#       entity: "Account",
+#       fields: [
+#         { name: "id" }
+#       ]
+#     }
+#   ]
+# )
+
+# @fulltext(
+#   name: "activitySearch"
+#   language: en
+#   algorithm: rank
+#   include: [
+#     {
+#       entity: "Activity",
+#       fields: [
+#         { name: "txHash" },
+#         { name: "blockHash" },
+#       ]
+#     }
+#   ]
+# )

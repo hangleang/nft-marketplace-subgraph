@@ -92,13 +92,15 @@ export function updateTokenMetadata(token: Token, tokenURI: string): Token {
     if (content) {
         const name          = getString(content, "name")
         const image         = getString(content, "image")
+        const externalURL   = getString(content, "external_url")
+        const animationURL  = getString(content, "animation_url")
         token.name          = name ? name : generatedName
         token.description   = getString(content, "description")
         token.contentURI    = formateURI(image, tokenURI)
-        token.externalURL   = getString(content, "external_url")
+        token.externalURL   = formateURI(externalURL, tokenURI)
         token.fallbackURL   = getString(content, "fallback_url")
         token.bgColor       = getString(content, "background_color")
-        token.animationURL  = getString(content, "animation_url")
+        token.animationURL  = formateURI(animationURL, tokenURI)
         token.youtubeURL    = getString(content, "youtube_url")
         
         const decimals      = content.get("decimals")
