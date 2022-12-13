@@ -6,22 +6,23 @@ features:
   - fullTextSearch
   - grafting
 graft:
-  base: QmZLtmVHk9Y2CTxvc5xMmjd5nBgoCgqM85Sm1KoXyMNfvg
-  block: 28906122
+  base: QmTbKS75VZWNEwpJR4ARbXVNiArwGkJKBm3K6aZH3ZAqqa
+  block: 7966730
 dataSources:
   - kind: ethereum
     name: Marketplace
-    network: mumbai
+    network: goerli
     source:
       abi: Marketplace
-      address: "0xC10c4A2F88924222fB33B048b494318cdE757DB8"
-      startBlock: 28851303
+      address: "0xd9a5fA95E554B124F07c0646a0eACAd9e00e06D2"
+      startBlock: 7925786
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
       language: wasm/assemblyscript
       file: ./src/marketplace.ts
       entities:
+        - Account
         - Marketplace
         - Listing
         - Offer
@@ -52,31 +53,26 @@ dataSources:
         - event: Upgraded(indexed address)
           handler: handleUpgraded
   - kind: ethereum
-    name: ERC721
-    network: mumbai
+    name: NFTs
+    network: goerli
     source:
-      abi: IERC721Drop
-      startBlock: 28851285
+      abi: INFTs
+      startBlock: 7925786
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
       language: wasm/assemblyscript
-      file: ./src/erc721.ts
+      file: ./src/nfts.ts
       entities:
+        - Account
         - Collection
         - Token
         - Activity
       abis:
-        - name: IERC721
-          file: ./abis/IERC721Metadata.json
-        - name: IERC1155
-          file: ./abis/IERC1155MetadataURI.json
         - name: IERC165Metadata
           file: ./abis/IERC165Metadata.json
-        - name: IERC721Drop
-          file: ./abis/IERC721Drop.json
-        - name: IERC721ERC1155
-          file: ./abis/IERC721ERC1155.json
+        - name: INFTs
+          file: ./abis/INFTs.json
       eventHandlers:
         - event: Approval(indexed address,indexed address,indexed uint256)
           handler: handleApproval
@@ -84,46 +80,6 @@ dataSources:
           handler: handleApprovalForAll
         - event: Transfer(indexed address,indexed address,indexed uint256)
           handler: handleTransfer
-        - event: NFTRevealed(uint256,uint256,string)
-          handler: handleNFTRevealed
-        - event: TokensClaimed(indexed uint256,indexed address,indexed
-            address,uint256,uint256)
-          handler: handleTokensClaimed
-        - event: TokensLazyMinted(uint256,uint256,string,bytes)
-          handler: handleTokensLazyMinted
-        - event: ClaimConditionsUpdated(uint256,uint256,bool)
-          handler: handleClaimConditionsUpdated
-        - event: MaxTotalSupplyUpdated(uint256)
-          handler: handleMaxTotalSupplyUpdated
-  - kind: ethereum
-    name: ERC1155
-    network: mumbai
-    source:
-      abi: IERC1155Drop
-      startBlock: 28851285
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.6
-      language: wasm/assemblyscript
-      file: ./src/erc1155.ts
-      entities:
-        - Collection
-        - Token
-        - Activity
-      abis:
-        - name: IERC721
-          file: ./abis/IERC721Metadata.json
-        - name: IERC1155
-          file: ./abis/IERC1155MetadataURI.json
-        - name: IERC165Metadata
-          file: ./abis/IERC165Metadata.json
-        - name: IERC1155Drop
-          file: ./abis/IERC1155Drop.json
-        - name: IERC721ERC1155
-          file: ./abis/IERC721ERC1155.json
-      eventHandlers:
-        - event: ApprovalForAll(indexed address,indexed address,bool)
-          handler: handleApprovalForAll
         - event: TransferBatch(indexed address,indexed address,indexed
             address,uint256[],uint256[])
           handler: handleTransferBatch
@@ -141,3 +97,14 @@ dataSources:
           handler: handleClaimConditionsUpdated
         - event: MaxTotalSupplyUpdated(uint256,uint256)
           handler: handleMaxTotalSupplyUpdated
+        - event: NFTRevealed(uint256,uint256,string)
+          handler: handleNFTRevealed
+        - event: IERC721TokensClaimed(indexed uint256,indexed address,indexed
+            address,uint256,uint256)
+          handler: handleIERC721TokensClaimed
+        - event: IERC721TokensLazyMinted(uint256,uint256,string,bytes)
+          handler: handleIERC721TokensLazyMinted
+        - event: IERC721ClaimConditionsUpdated(uint256,uint256,bool)
+          handler: handleIERC721ClaimConditionsUpdated
+        - event: IERC721MaxTotalSupplyUpdated(uint256)
+          handler: handleIERC721MaxTotalSupplyUpdated

@@ -4,11 +4,8 @@
       "address": "",
       "startBlock": 5806610
     },
-    "ERC721": {
+    "NFTs": {
       "startBlock": 5806610
-    },
-    "ERC1155":  {
-      "startBlock": 6930510
     }
   },
   "mumbai": {
@@ -16,10 +13,7 @@
       "address": "0xC10c4A2F88924222fB33B048b494318cdE757DB8",
       "startBlock": 28851303
     },
-    "ERC721": {
-      "startBlock": 28851285
-    },
-    "ERC1155":  {
+    "NFTs": {
       "startBlock": 28851285
     }
   },
@@ -28,10 +22,7 @@
       "address": "0xd9a5fA95E554B124F07c0646a0eACAd9e00e06D2",
       "startBlock": 7925786
     },
-    "ERC721": {
-      "startBlock": 7925786
-    },
-    "ERC1155":  {
+    "NFTs": {
       "startBlock": 7925786
     }
   }

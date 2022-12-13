@@ -3,9 +3,10 @@ import { decimals } from '@amxx/graphprotocol-utils'
 import { TokenBalance, Collection, Token, Account, Attribute } from "../../generated/schema";
 import { NULL_ADDRESS, ZERO_BIGINT, ZERO_DECIMAL } from "../constants";
 import { formateURI, generateUID, getString, isIPFS, loadContentFromURI, replaceURI } from "../utils";
-import { IERC721 } from "../../generated/ERC721/IERC721";
-import { IERC1155 } from "../../generated/ERC1155/IERC1155";
-import { IERC721ERC1155 } from "../../generated/ERC1155/IERC721ERC1155";
+// import { IERC721 } from "../../generated/ERC721/IERC721";
+// import { IERC1155 } from "../../generated/ERC1155/IERC1155";
+// import { IERC721ERC1155 } from "../../generated/ERC1155/IERC721ERC1155";
+import { INFTs } from '../../generated/NFTs/INFTs';
 import { createOrLoadAccount } from "./account";
 import { createActivity } from "./activity";
 
@@ -33,16 +34,18 @@ export function createOrLoadToken(collection: Collection, tokenId: BigInt, curre
 
         let tokenURI = '';
         if (collection.supportsMetadata) {
+            const asset             = INFTs.bind(collectionAddress)
+            
             if (collection.collectionType == collections.SINGLE) {
-                const erc721        = IERC721.bind(collectionAddress)
-                const try_tokenURI  = erc721.try_tokenURI(tokenId)
+                // const erc721        = IERC721.bind(collectionAddress)
+                const try_tokenURI  = asset.try_tokenURI(tokenId)
                 tokenURI            = try_tokenURI.reverted ? '' : try_tokenURI.value
             } else if (collection.collectionType == collections.MULTI) {
-                const erc1155       = IERC1155.bind(collectionAddress)
-                const try_uri       = erc1155.try_uri(tokenId)
+                // const erc1155       = IERC1155.bind(collectionAddress)
+                const try_uri       = asset.try_uri(tokenId)
                 tokenURI            = try_uri.reverted ? '' : replaceURI(try_uri.value, tokenId)
             } else if (collection.collectionType == collections.SEMI) {
-                const asset         = IERC721ERC1155.bind(collectionAddress)
+                // const asset         = IERC721ERC1155.bind(collectionAddress)
 
                 let collectionId: BigInt
                 let isCollection = false
