@@ -1,5 +1,5 @@
 import { BigDecimal, BigInt, JSONValue, JSONValueKind, TypedMap } from "@graphprotocol/graph-ts";
-// import { base64ToJSON, isBase64 } from "./base64";
+import { base64ToJSON, isBase64 } from "./base64";
 // import { httpsToJSON, isHTTPS } from "./https";
 import { concatImageIPFS, ipfsToJSON, isIPFS, toIPFSGateway } from "./ipfs";
 
@@ -22,9 +22,9 @@ export function loadContentFromURI(uri: string): TypedMap<string, JSONValue> | n
     // else if (isHTTPS(uri)) {
     //     value = httpsToJSON(uri);
     // } 
-    // else if (isBase64(uri)) {
-    //     value = base64ToJSON(uri);
-    // }
+    else if (isBase64(uri)) {
+        value = base64ToJSON(uri);
+    }
     
     // parse to object, then return
     if (value) {
@@ -47,6 +47,9 @@ export function formateURI(uriOrPath: string | null, metadataURI: string): strin
                 // if HTTPS
                 return uriOrPath
             }
+        } else if (isBase64(uriOrPath)) {
+            // if Base64
+            return uriOrPath
         } else {
             // if Path
             const fullIPFSURI = concatImageIPFS(metadataURI, uriOrPath)
