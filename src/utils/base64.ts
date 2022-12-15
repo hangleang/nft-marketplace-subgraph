@@ -1,5 +1,4 @@
 import { Bytes, json, JSONValue } from "@graphprotocol/graph-ts";
-// import { decode } from "as-base64";
 
 // PROTOCOL
 const BASE64JSON_PREFIX: string = "data:application/json;base64,";
@@ -14,14 +13,15 @@ export function isBase64(base64data: string): bool {
 }
 
 // function isUrlSafe(base64data: string): bool {
-//   return base64data.includes("-") || base64data.includes("_");
+//   return !base64data.includes("=");
 // }
 
 export function base64ToJSON(base64data: string): JSONValue | null {
   if (isBase64JSON(base64data)) {
     const encoded = base64data.replace(BASE64JSON_PREFIX, "");
-    const decoded = decode(encoded);
-    const base64AsBytes = Bytes.fromUint8Array(decoded);
+	const formattedEncoded = encoded.replaceAll("-", "+").replaceAll("_", "/")
+    const decoded = decode(formattedEncoded)
+    const base64AsBytes = Bytes.fromUint8Array(decoded)
 
     const try_value = json.try_fromBytes(base64AsBytes);
     if (try_value.isOk) {
@@ -32,13 +32,14 @@ export function base64ToJSON(base64data: string): JSONValue | null {
   return null;
 }
 
+// below codes is modified from https://github.com/near/as-base64/blob/master/assembly/index.ts
 const PADCHAR = "=";
 
  /**
     * Decode a base64-encoded string and return a Uint8Array.
     * @param s Base64 encoded string.
     */
- export function decode(s: string): Uint8Array {
+function decode(s: string): Uint8Array {
 	let i: u32, b10: u32;
 	let pads = 0,
 			imax = s.length as u32;
@@ -90,6 +91,8 @@ const PADCHAR = "=";
 	return x;
 }
 
+// below codes from https://developer.mozilla.org/en-US/docs/Glossary/Base64
+
 // Array of bytes to Base64 string decoding
 function getByte64(s: string, i: u32): u32 {
 	const nChr = s.charCodeAt(i);
@@ -106,11 +109,8 @@ function getByte64(s: string, i: u32): u32 {
     : 0;
 }
 
-// function base64DecToArr(sBase64: string, urlSafe: bool, nBlocksSize: number | null) {
-// 	const regexStr = urlSafe ? "[^A-Za-z0-9\-_]" : "[^A-Za-z0-9+/]"
-// 	const regex = new RegExp(regexStr, "g");
-
-//   // const sB64Enc = sBase64.replace(, "");
+// function base64DecToArr(sBase64: string, nBlocksSize: number | null) {
+//   const sB64Enc = sBase64.replace(/^A-Za-z0-9+/g, "");
 //   const nInLen = sB64Enc.length;
 //   const nOutLen = nBlocksSize
 //     ? Math.ceil(((nInLen * 3 + 1) >> 2) / nBlocksSize) * nBlocksSize
@@ -184,9 +184,9 @@ function getByte64(s: string, i: u32): u32 {
 
 // /* UTF-8 array to JS string and vice versa */
 
-// function UTF8ArrToStr(aBytes: Bytes) {
+// function UTF8ArrToStr(aBytes: Bytes): string {
 //   let sView = "";
-//   let nPart;
+//   let nPart: u8;
 //   const nLen = aBytes.length;
 //   for (let nIdx = 0; nIdx < nLen; nIdx++) {
 //     nPart = aBytes[nIdx];

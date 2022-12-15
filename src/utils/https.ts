@@ -1,5 +1,6 @@
-import { json, JSONValue, log } from "@graphprotocol/graph-ts";
+// import { json, JSONValue, log } from "@graphprotocol/graph-ts";
 // import { fetch } from "as-fetch";
+// import {  } from "as-fetch/imports"
 
 // PROTOCOL
 export const HTTPS_PREFIX: string = "https://";
@@ -17,10 +18,11 @@ export function isHTTPS(url: string): bool {
 //         mode: "no-cors",
 //         headers: [["content-type", "application/json"]],
 //         body: null
-//     }).then((resp) => {
+//     })
+//     .then((resp) => {
 //         if (resp.ok) {
-//             const dataJSON = resp.text();
-//             const try_value = json.try_fromString(dataJSON);
+//             let dataJSON = resp.text();
+//             let try_value = json.try_fromString(dataJSON);
 
 //             if (try_value.isOk) {
 //                 value = try_value.value;

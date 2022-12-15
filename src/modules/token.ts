@@ -2,10 +2,7 @@ import { Address, BigInt, ethereum, JSONValue, JSONValueKind } from "@graphproto
 import { decimals } from '@amxx/graphprotocol-utils'
 import { TokenBalance, Collection, Token, Account, Attribute } from "../../generated/schema";
 import { NULL_ADDRESS, ZERO_BIGINT, ZERO_DECIMAL } from "../constants";
-import { formateURI, generateUID, getString, isIPFS, loadContentFromURI, replaceURI } from "../utils";
-// import { IERC721 } from "../../generated/ERC721/IERC721";
-// import { IERC1155 } from "../../generated/ERC1155/IERC1155";
-// import { IERC721ERC1155 } from "../../generated/ERC1155/IERC721ERC1155";
+import { formateURI, generateUID, getString, loadContentFromURI, replaceURI } from "../utils";
 import { INFTs } from '../../generated/NFTs/INFTs';
 import { createOrLoadAccount } from "./account";
 import { createActivity } from "./activity";
@@ -28,7 +25,7 @@ export function createOrLoadToken(collection: Collection, tokenId: BigInt, curre
         token.approval      = createOrLoadAccount(NULL_ADDRESS).id
 
         // implicit set non-null fields with default value, in case no metadataURI
-        token.isIPFS   = false
+        token.isResolved    = false
         token.decimals = 1
         token.name     = generateTokenName(collectionAddress, token.tokenId)
 
@@ -89,17 +86,21 @@ export function updateTokenMetadata(token: Token, tokenURI: string): Token {
     const collectionAddress = Address.fromString(token.collection)
     const generatedName     = generateTokenName(collectionAddress, token.tokenId)
     token.tokenURI          = tokenURI
-    token.isIPFS            = isIPFS(tokenURI)
     
+    // try load metadata from URI
     const content           = loadContentFromURI(tokenURI)
+
+    token.isResolved        = content != null
     if (content) {
         const name          = getString(content, "name")
         const image         = getString(content, "image")
+        const imageData     = getString(content, "image_data")
         const externalURL   = getString(content, "external_url")
         const animationURL  = getString(content, "animation_url")
-        token.name          = name ? name : generatedName
+
+        token.name          = name && name != "" ? name : generatedName
         token.description   = getString(content, "description")
-        token.contentURI    = formateURI(image, tokenURI)
+        token.contentURI    = formateURI(image ? image : imageData, tokenURI)
         token.externalURL   = formateURI(externalURL, tokenURI)
         token.fallbackURL   = getString(content, "fallback_url")
         token.bgColor       = getString(content, "background_color")

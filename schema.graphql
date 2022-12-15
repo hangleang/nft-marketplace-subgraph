@@ -35,7 +35,7 @@ type Collection @entity {
 
   # metadata
   supportsMetadata: Boolean!
-  isIPFS: Boolean
+  isResolved: Boolean
   metadataURI: String
   name: String!
   symbol: String!
@@ -63,7 +63,7 @@ type Token @entity {
   approval: Account!
 
   # metadata
-  isIPFS: Boolean!
+  isResolved: Boolean!
   tokenURI: String
   name: String!
   decimals: Int
