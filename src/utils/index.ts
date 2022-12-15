@@ -1,14 +1,13 @@
 import { BigDecimal, BigInt, JSONValue, JSONValueKind, TypedMap } from "@graphprotocol/graph-ts";
+import { concatImageIPFS, ipfsToJSON, isIPFS, toIPFSGateway } from "./ipfs";
 import { base64ToJSON, isBase64JSON, isBase64 } from "./base64";
 // import { httpsToJSON, isHTTPS } from "./https";
-import { concatImageIPFS, ipfsToJSON, isIPFS, toIPFSGateway } from "./ipfs";
+import { isArweave, toArweaveGateway } from "./arweave";
+import { isHTTPS } from "./https";
 
 export * from './ipfs';
 export * from './https';
 export * from './base64';
-
-// PROTOCOL
-// const ARWEAVE_PREFIX: string = "ar://";
 
 // OTHERS
 const URI_CONTAINS: string = "://";
@@ -25,6 +24,9 @@ export function loadContentFromURI(uri: string): TypedMap<string, JSONValue> | n
     else if (isBase64JSON(uri)) {
         value = base64ToJSON(uri);
     }
+    // else if (isArweave(uri)) {
+    //     value = arweaveToJSON(uri)
+    // }
     
     // parse to object, then return
     if (value) {
@@ -36,25 +38,26 @@ export function loadContentFromURI(uri: string): TypedMap<string, JSONValue> | n
     return null;
 }
 
-export function formateURI(uriOrPath: string | null, metadataURI: string): string | null {
-    if (uriOrPath) {
-        if (isURI(uriOrPath)) {
-            // if URI
-            if (isIPFS(uriOrPath)) {
-                // if IPFS
-                return toIPFSGateway(uriOrPath)
-            } else {
-                // if HTTPS
-                return uriOrPath
-            }
-        } else if (isBase64(uriOrPath)) {
-            // if Base64
+export function formatURI(uriOrPath: string, metadataURI: string | null): string | null {
+    if (isURI(uriOrPath)) {
+        // if URI
+        if (isIPFS(uriOrPath)) {
+            // if IPFS
+            return toIPFSGateway(uriOrPath)
+        } else if (isHTTPS(uriOrPath)) {
+            // if HTTPS
             return uriOrPath
-        } else {
-            // if Path
-            const fullIPFSURI = concatImageIPFS(metadataURI, uriOrPath)
-            return fullIPFSURI ? toIPFSGateway(fullIPFSURI) : null
+        } else if (isArweave(uriOrPath)) {
+            // if Arweave
+            return toArweaveGateway(uriOrPath)
         }
+    } else if (isBase64(uriOrPath)) {
+        // if Base64
+        return uriOrPath
+    } else if (metadataURI) {
+        // if Path
+        const fullIPFSURI = concatImageIPFS(metadataURI, uriOrPath)
+        return fullIPFSURI ? toIPFSGateway(fullIPFSURI) : null
     }
     return null
 }

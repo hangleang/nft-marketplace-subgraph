@@ -1,7 +1,7 @@
 import { Address, BigInt } from "@graphprotocol/graph-ts";
 import { Collection, CollectionStats } from "../../generated/schema";
 import { STATS_POSTFIX, ZERO_BIGINT, ZERO_DECIMAL } from "../constants";
-import { formateURI, generateUID, getMax, getMin, getString, loadContentFromURI } from "../utils";
+import { formatURI, generateUID, getMax, getMin, getString, loadContentFromURI } from "../utils";
 import { IERC165Metadata } from '../../generated/NFTs/IERC165Metadata';
 import { supportsInterface } from "./erc165";
 import { createOrLoadAccount } from "./account";
@@ -34,10 +34,11 @@ export function createOrLoadCollection(address: Address, currentTimestamp: BigIn
 		let try_symbol            = contract.try_symbol()
     let try_contractURI       = contract.try_contractURI()
     let try_owner             = contract.try_owner()
-    const nameFromContract    = try_name.reverted   ? '' : try_name.value;
+    const nameFromContract    = try_name.reverted   ? '' : try_name.value
+    const metadataURI: string | null = try_contractURI.reverted ? null : try_contractURI.value
     collection.name           = nameFromContract
 		collection.symbol         = try_symbol.reverted ? '' : try_symbol.value
-    collection.metadataURI    = try_contractURI.reverted ? null : try_contractURI.value
+    collection.metadataURI    = metadataURI ? formatURI(metadataURI, null) : null
     
     // Try load owner, then set to collection entity
     if (!try_owner.reverted) {
@@ -45,11 +46,9 @@ export function createOrLoadCollection(address: Address, currentTimestamp: BigIn
     }
     
     // If have contractURI, then try load from IPFS
-    if (!try_contractURI.reverted) {
-      const contractURI = try_contractURI.value
-
+    if (metadataURI) {
       // fetch metadata from IPFS URI, then set metadata fields
-      const content = loadContentFromURI(contractURI)
+      const content = loadContentFromURI(metadataURI)
 
       collection.isResolved = content != null
       if (content) {
@@ -58,8 +57,8 @@ export function createOrLoadCollection(address: Address, currentTimestamp: BigIn
         const bannerImage         = getString(content, "banner_image")
         collection.name           = name ? name : nameFromContract
         collection.description    = getString(content, "description")
-        collection.featuredImage  = formateURI(featuredImage, contractURI)
-        collection.bannerImage    = formateURI(bannerImage, contractURI)
+        collection.featuredImage  = featuredImage ? formatURI(featuredImage, metadataURI) : null
+        collection.bannerImage    = bannerImage ? formatURI(bannerImage, metadataURI) : null
         collection.externalLink   = getString(content, "external_link")
         collection.fallbackURL    = getString(content, "fallback_url")
       }
