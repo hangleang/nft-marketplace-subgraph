@@ -1,7 +1,7 @@
 import { Address, BigInt } from "@graphprotocol/graph-ts";
 import { Collection, CollectionStats } from "../../generated/schema";
 import { STATS_POSTFIX, ZERO_BIGINT, ZERO_DECIMAL } from "../constants";
-import { formateURI, generateUID, getMax, getMin, getString, isIPFS, loadContentFromURI } from "../utils";
+import { formateURI, generateUID, getMax, getMin, getString, loadContentFromURI } from "../utils";
 import { IERC165Metadata } from '../../generated/NFTs/IERC165Metadata';
 import { supportsInterface } from "./erc165";
 import { createOrLoadAccount } from "./account";
@@ -47,10 +47,11 @@ export function createOrLoadCollection(address: Address, currentTimestamp: BigIn
     // If have contractURI, then try load from IPFS
     if (!try_contractURI.reverted) {
       const contractURI = try_contractURI.value
-      collection.isIPFS = isIPFS(contractURI);
 
       // fetch metadata from IPFS URI, then set metadata fields
       const content = loadContentFromURI(contractURI)
+
+      collection.isResolved = content != null
       if (content) {
         const name                = getString(content, "name")
         const featuredImage       = getString(content, "image")
