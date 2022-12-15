@@ -2,7 +2,7 @@ import { Address, BigInt, ethereum, JSONValue, JSONValueKind } from "@graphproto
 import { decimals } from '@amxx/graphprotocol-utils'
 import { TokenBalance, Collection, Token, Account, Attribute } from "../../generated/schema";
 import { NULL_ADDRESS, ZERO_BIGINT, ZERO_DECIMAL } from "../constants";
-import { formateURI, generateUID, getString, loadContentFromURI, replaceURI } from "../utils";
+import { formatURI, generateUID, getString, loadContentFromURI, replaceURI } from "../utils";
 import { INFTs } from '../../generated/NFTs/INFTs';
 import { createOrLoadAccount } from "./account";
 import { createActivity } from "./activity";
@@ -11,6 +11,7 @@ import * as collections from '../constants/collections';
 import * as activities from '../constants/activities';
 
 const TOTAL_SUPPLY_POSTFIX: string = 'totalSupply'
+const TOKEN_NAME_NOT_FOUND: string = "Untitled"
 
 export function createOrLoadToken(collection: Collection, tokenId: BigInt, currentTimestamp: BigInt): Token {
     const collectionAddress = Address.fromString(collection.id)
@@ -85,7 +86,7 @@ export function createOrLoadToken(collection: Collection, tokenId: BigInt, curre
 export function updateTokenMetadata(token: Token, tokenURI: string): Token {
     const collectionAddress = Address.fromString(token.collection)
     const generatedName     = generateTokenName(collectionAddress, token.tokenId)
-    token.tokenURI          = tokenURI
+    token.tokenURI          = formatURI(tokenURI, null)
     
     // try load metadata from URI
     const content           = loadContentFromURI(tokenURI)
@@ -93,18 +94,20 @@ export function updateTokenMetadata(token: Token, tokenURI: string): Token {
     token.isResolved        = content != null
     if (content) {
         const name          = getString(content, "name")
-        const image         = getString(content, "image")
-        const imageData     = getString(content, "image_data")
         const externalURL   = getString(content, "external_url")
         const animationURL  = getString(content, "animation_url")
-
-        token.name          = name && name != "" ? name : generatedName
+        let image           = getString(content, "image")
+        if (image == null) {
+            image           = getString(content, "image_data")
+        }
+        
+        token.name          = name && name != TOKEN_NAME_NOT_FOUND ? name : generatedName
         token.description   = getString(content, "description")
-        token.contentURI    = formateURI(image ? image : imageData, tokenURI)
-        token.externalURL   = formateURI(externalURL, tokenURI)
+        token.contentURI    = image ? formatURI(image, tokenURI) : null
+        token.externalURL   = externalURL ? formatURI(externalURL, tokenURI) : null
         token.fallbackURL   = getString(content, "fallback_url")
         token.bgColor       = getString(content, "background_color")
-        token.animationURL  = formateURI(animationURL, tokenURI)
+        token.animationURL  = animationURL ? formatURI(animationURL, tokenURI) : null
         token.youtubeURL    = getString(content, "youtube_url")
         
         const decimals      = content.get("decimals")
