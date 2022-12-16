@@ -7,7 +7,12 @@
   },
   "plugins": {
     "@release-it/conventional-changelog": {
-      "preset": "angular"
+      "preset": "angular",
+      "infile": "CHANGELOG.md"
+    },
+    "@csmith/release-it-calver-plugin": {
+      "format": "yyyy.mm.minor",
+      "increment": "calendar"
     }
   },
   "hooks": {
