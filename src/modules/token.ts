@@ -27,8 +27,8 @@ export function createOrLoadToken(collection: Collection, tokenId: BigInt, curre
 
         // implicit set non-null fields with default value, in case no metadataURI
         token.isResolved    = false
-        token.decimals = 1
-        token.name     = generateTokenName(collectionAddress, token.tokenId)
+        token.decimals      = 0
+        token.name          = generateTokenName(collectionAddress, token.tokenId)
 
         let tokenURI = '';
         if (collection.supportsMetadata) {
@@ -114,7 +114,7 @@ export function updateTokenMetadata(token: Token, tokenURI: string): Token {
         if (decimals != null && decimals.kind == JSONValueKind.NUMBER) {
             token.decimals  = decimals.toBigInt().toI32()
         } else {
-            token.decimals  = 1
+            token.decimals  = 0
         }
 
         // get attributes link to this token
