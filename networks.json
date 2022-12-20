@@ -20,10 +20,10 @@
   "goerli": {
     "Marketplace": {
       "address": "0xd9a5fA95E554B124F07c0646a0eACAd9e00e06D2",
-      "startBlock": 7925786
+      "startBlock": 7955847
     },
     "NFTs": {
-      "startBlock": 7925786
+      "startBlock": 8015000
     }
   }
 }

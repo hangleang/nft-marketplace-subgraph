@@ -28,7 +28,7 @@ import * as collections from './constants/collections';
 import { ONE_BIGINT } from './constants';
 import { Address, BigInt, ethereum, store } from '@graphprotocol/graph-ts';
 import { replaceURI } from './utils';
-import { Account, Collection } from '../generated/schema';
+import { Collection } from '../generated/schema';
 
 export function handleTransferSingle(event: TransferSingleEvent): void {
     // Init local vars from event params
@@ -68,8 +68,9 @@ export function handleTransferBatch(event: TransferBatchEvent): void {
         
         // Make sure these length are equal
         if(tokenIds.length == values.length) {
+            let canLoadMetadata: bool = true;
             for (let i = 0; i < tokenIds.length; i++) {
-                registerTransfer(event, collection, from, to, tokenIds[i], values[i], currentBlock.timestamp)
+                canLoadMetadata = registerTransfer(event, collection, from, to, tokenIds[i], values[i], currentBlock.timestamp, canLoadMetadata)
             }
         }
     }
@@ -117,12 +118,15 @@ export function handleTokensLazyMinted(event: TokensLazyMintedEvent): void {
     // Try create new collection entity, if not yet exist
     const collection    = createOrLoadCollection(event.address, currentBlock.timestamp)
     if (collection != null) {
+        let canLoadMetadata: bool = true;
         for (let tokenId = startTokenId; tokenId <= endTokenId; tokenId = tokenId.plus(ONE_BIGINT)) {
-            const token         = createOrLoadToken(collection, tokenId, currentBlock.timestamp)
+            const token         = createOrLoadToken(collection, tokenId, currentBlock.timestamp, canLoadMetadata)
             const dropDetail    = createOrLoadDropDetails(token.id)
 
             token.dropDetails   = dropDetail.id
             token.save()
+
+            canLoadMetadata     = token.isResolved
         }
     }
 }
@@ -392,12 +396,15 @@ export function handleNFTRevealed(event: NFTRevealedEvent): void {
     // Try create new collection entity, if not yet exist
     const collection        = createOrLoadCollection(event.address, currentBlock.timestamp)
     if (collection != null) {
+        let canLoadMetadata: bool = true;
         for (let tokenId = startTokenId; tokenId <= endTokenId; tokenId = tokenId.plus(ONE_BIGINT)) {
-            let token       = createOrLoadToken(collection, tokenId, currentBlock.timestamp)
+            let token       = createOrLoadToken(collection, tokenId, currentBlock.timestamp, canLoadMetadata)
             const tokenURI  = replaceURI(revealedURI, tokenId)
             token           = updateTokenMetadata(token, tokenURI)
             token.updatedAt = currentBlock.timestamp
             token.save()
+
+            canLoadMetadata = token.isResolved
         }
     }
 }
@@ -408,8 +415,10 @@ function registerClaimed(collection: Collection, claimerAddress: Address, receiv
         const dropCondition = createOrLoadDropClaimCondition(dropDetail, claimIdx)
 
         const endTokenId    = startTokenId.plus(quantity)
+        let canLoadMetadata: bool = true;
         for (let tokenId = startTokenId; tokenId <= endTokenId; tokenId = tokenId.plus(ONE_BIGINT)) {
-            let token       = createOrLoadToken(collection, tokenId, event.block.timestamp)
+            let token       = createOrLoadToken(collection, tokenId, event.block.timestamp, canLoadMetadata)
+            canLoadMetadata = token.isResolved
 
             // Create claimed activity entity
             createActivity(activities.CLAIMED, event, token, claimerAddress, receiverAddress, ONE_BIGINT, dropCondition.currency, dropCondition.price.toBigDecimal())

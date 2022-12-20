@@ -1,4 +1,4 @@
-import { Address, BigDecimal, BigInt, Bytes, ethereum, log } from "@graphprotocol/graph-ts";
+import { Address, BigDecimal, BigInt, Bytes, ethereum } from "@graphprotocol/graph-ts";
 import { Token, Activity, Account, Offer, Listing } from "../../generated/schema";
 import { NULL_ADDRESS, ZERO_BIGINT, ZERO_DECIMAL } from "../constants";
 import { generateUID } from "../utils";
@@ -21,7 +21,6 @@ export function createActivity(
     if (type == activities.CLAIMED) {
         id = id + "-" + token.tokenId.toString()
     }
-    log.info("event {} with id:{}", [type, id])
 
     let activity            = new Activity(id)
     activity.activityType   = type

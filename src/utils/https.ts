@@ -1,4 +1,4 @@
-import { json, JSONValue, log } from "@graphprotocol/graph-ts";
+import { json, JSONValue } from "@graphprotocol/graph-ts";
 import { fetch } from "as-fetch";
 // import {  } from "as-fetch/imports"
 
@@ -10,7 +10,6 @@ export function isHTTPS(url: string): bool {
 }
 
 export function httpsToJSON(url: string): JSONValue | null {
-    log.info("endpoint: {}", [url])
     let value: JSONValue | null = null;
 
     fetch(url, {
