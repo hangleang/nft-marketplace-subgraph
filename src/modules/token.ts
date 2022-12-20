@@ -13,7 +13,7 @@ import * as activities from '../constants/activities';
 const TOTAL_SUPPLY_POSTFIX: string = 'totalSupply'
 const TOKEN_NAME_NOT_FOUND: string = "Untitled"
 
-export function createOrLoadToken(collection: Collection, tokenId: BigInt, currentTimestamp: BigInt): Token {
+export function createOrLoadToken(collection: Collection, tokenId: BigInt, currentTimestamp: BigInt, canLoadMetadata: bool = true): Token {
     const collectionAddress = Address.fromString(collection.id)
     const id = generateTokenUID(collectionAddress, tokenId)
     let token = Token.load(id)
@@ -73,7 +73,11 @@ export function createOrLoadToken(collection: Collection, tokenId: BigInt, curre
 
         if (tokenURI != '') {
             // fetch metadata from IPFS URI, then set metadata fields
-            token          = updateTokenMetadata(token, tokenURI)
+            if (canLoadMetadata) {
+                token          = updateTokenMetadata(token, tokenURI)
+            } else {
+                token.tokenURI = tokenURI
+            }
         }
 
         token.createdAt = currentTimestamp
@@ -166,9 +170,10 @@ export function registerTransfer(
 	to: Account,
 	tokenId: BigInt,
 	value: BigInt,
-    timestamp: BigInt
-): void {
-    const token         = createOrLoadToken(collection, tokenId, timestamp)
+    timestamp: BigInt,
+    canLoadMetadata: bool = true
+): bool {
+    const token         = createOrLoadToken(collection, tokenId, timestamp, canLoadMetadata)
                 
     const fromAddress   = Address.fromString(from.id)
     const toAddress     = Address.fromString(to.id)
@@ -188,8 +193,9 @@ export function registerTransfer(
 
     // Update both parties token balances (ownership)
     transferTokenBalance(token, from, to, value)
-
     token.save()
+
+    return token.isResolved
 }
 
 function transferTokenBalance(token: Token, from: Account, to: Account, value: BigInt): void {
