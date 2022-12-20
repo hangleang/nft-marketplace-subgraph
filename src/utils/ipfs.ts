@@ -1,4 +1,4 @@
-import { ipfs, json, JSONValue, log } from "@graphprotocol/graph-ts";
+import { ipfs, json, JSONValue } from "@graphprotocol/graph-ts";
 import { HTTPS_PREFIX } from "./https";
 
 // PROTOCOL
@@ -15,7 +15,6 @@ export function isIPFS(uri: string): boolean {
 
 export function ipfsToJSON(uri: string): JSONValue | null {
     const ipfsHash = uri.replace(IPFS_PREFIX, "").replaceAll("//", "/");
-    log.info("ipfsHash: {}", [ipfsHash]);
 
     if ((ipfsHash.startsWith("Qm") || ipfsHash.startsWith("ba")) && ipfsHash.length > 21) {
         const data = ipfs.cat(ipfsHash);
@@ -37,7 +36,6 @@ export function concatImageIPFS(uri: string, image_path: string): string | null 
         
         if (cid) {
             const imageIPFS = cid + "/" + image_path;
-            log.info("image IPFS: {}", [imageIPFS]);
             
             return imageIPFS;
         }
@@ -52,7 +50,6 @@ export function toIPFSGateway(uri: string): string {
 function metadataURIToCID(metadataURI: string): string | null {
     if (metadataURI.endsWith(METADATA_PATH)) {
         const cid = metadataURI.replace(METADATA_PATH, "");
-        log.info("CID: {}", [cid]);
 
         return cid;
     }

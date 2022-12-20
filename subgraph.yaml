@@ -4,18 +4,14 @@ schema:
 features:
   - ipfsOnEthereumContracts
   - fullTextSearch
-  - grafting
-graft:
-  base: QmbsN5xHfUupFjQUws2aXtAYTLKTAZvnpfir4NT4YY1ezM
-  block: 28871346
 dataSources:
   - kind: ethereum
     name: Marketplace
-    network: mumbai
+    network: goerli
     source:
       abi: Marketplace
-      address: "0xC10c4A2F88924222fB33B048b494318cdE757DB8"
-      startBlock: 28851303
+      address: "0xd9a5fA95E554B124F07c0646a0eACAd9e00e06D2"
+      startBlock: 7925786
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -54,10 +50,10 @@ dataSources:
           handler: handleUpgraded
   - kind: ethereum
     name: NFTs
-    network: mumbai
+    network: goerli
     source:
       abi: INFTs
-      startBlock: 28851285
+      startBlock: 8015000
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6

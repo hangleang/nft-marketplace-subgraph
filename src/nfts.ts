@@ -28,7 +28,7 @@ import * as collections from './constants/collections';
 import { ONE_BIGINT } from './constants';
 import { Address, BigInt, ethereum, store } from '@graphprotocol/graph-ts';
 import { replaceURI } from './utils';
-import { Account, Collection } from '../generated/schema';
+import { Collection } from '../generated/schema';
 
 export function handleTransferSingle(event: TransferSingleEvent): void {
     // Init local vars from event params
