@@ -6,8 +6,8 @@ features:
   - fullTextSearch
   - grafting
 graft:
-  base: QmTWA3pKwZtrgV3dmdDgd2uqTbYywMTmU4pLey2yV8fQFk
-  block: 8081940
+  base: QmYEYZKq8tThfmL7Kj1RdEXz31dSKmi5mB8PpMJpgZyPFk
+  block: 8096520
 dataSources:
   - kind: ethereum
     name: Marketplace
@@ -31,6 +31,8 @@ dataSources:
       abis:
         - name: Marketplace
           file: ./abis/Marketplace.json
+        - name: IERC165Metadata
+          file: ./abis/IERC165Metadata.json
       eventHandlers:
         - event: AuctionClosed(indexed uint256,indexed address,indexed
             bool,address,address)
@@ -69,10 +71,10 @@ dataSources:
         - Token
         - Activity
       abis:
-        - name: IERC165Metadata
-          file: ./abis/IERC165Metadata.json
         - name: INFTs
           file: ./abis/INFTs.json
+        - name: IERC165Metadata
+          file: ./abis/IERC165Metadata.json
       eventHandlers:
         - event: Approval(indexed address,indexed address,indexed uint256)
           handler: handleApproval
