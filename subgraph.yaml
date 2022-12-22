@@ -4,6 +4,10 @@ schema:
 features:
   - ipfsOnEthereumContracts
   - fullTextSearch
+  - grafting
+graft:
+  base: QmTWA3pKwZtrgV3dmdDgd2uqTbYywMTmU4pLey2yV8fQFk
+  block: 8081940
 dataSources:
   - kind: ethereum
     name: Marketplace
