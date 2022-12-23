@@ -4,9 +4,9 @@ import {
   ImplementationAdded,
   ImplementationApproved,
   ProxyDeployed,
-  ContractFactoryRoleAdminChanged,
-  ContractFactoryRoleGranted,
-  ContractFactoryRoleRevoked
+  RoleAdminChanged,
+  RoleGranted,
+  RoleRevoked
 } from "../generated/ContractFactory/ContractFactory"
 
 export function createImplementationAddedEvent(
@@ -67,7 +67,8 @@ export function createImplementationApprovedEvent(
 }
 
 export function createProxyDeployedEvent(
-  implementation: Address,
+  contractType: Bytes,
+  data: Bytes,
   proxy: Address,
   deployer: Address
 ): ProxyDeployed {
@@ -77,9 +78,12 @@ export function createProxyDeployedEvent(
 
   proxyDeployedEvent.parameters.push(
     new ethereum.EventParam(
-      "implementation",
-      ethereum.Value.fromAddress(implementation)
+      "contractType",
+      ethereum.Value.fromFixedBytes(contractType)
     )
+  )
+  proxyDeployedEvent.parameters.push(
+    new ethereum.EventParam("data", ethereum.Value.fromBytes(data))
   )
   proxyDeployedEvent.parameters.push(
     new ethereum.EventParam("proxy", ethereum.Value.fromAddress(proxy))
@@ -91,80 +95,74 @@ export function createProxyDeployedEvent(
   return proxyDeployedEvent
 }
 
-export function createContractFactoryRoleAdminChangedEvent(
+export function createRoleAdminChangedEvent(
   role: Bytes,
   previousAdminRole: Bytes,
   newAdminRole: Bytes
-): ContractFactoryRoleAdminChanged {
-  let contractFactoryRoleAdminChangedEvent = changetype<
-    ContractFactoryRoleAdminChanged
-  >(newMockEvent())
+): RoleAdminChanged {
+  let roleAdminChangedEvent = changetype<RoleAdminChanged>(newMockEvent())
 
-  contractFactoryRoleAdminChangedEvent.parameters = new Array()
+  roleAdminChangedEvent.parameters = new Array()
 
-  contractFactoryRoleAdminChangedEvent.parameters.push(
+  roleAdminChangedEvent.parameters.push(
     new ethereum.EventParam("role", ethereum.Value.fromFixedBytes(role))
   )
-  contractFactoryRoleAdminChangedEvent.parameters.push(
+  roleAdminChangedEvent.parameters.push(
     new ethereum.EventParam(
       "previousAdminRole",
       ethereum.Value.fromFixedBytes(previousAdminRole)
     )
   )
-  contractFactoryRoleAdminChangedEvent.parameters.push(
+  roleAdminChangedEvent.parameters.push(
     new ethereum.EventParam(
       "newAdminRole",
       ethereum.Value.fromFixedBytes(newAdminRole)
     )
   )
 
-  return contractFactoryRoleAdminChangedEvent
+  return roleAdminChangedEvent
 }
 
-export function createContractFactoryRoleGrantedEvent(
+export function createRoleGrantedEvent(
   role: Bytes,
   account: Address,
   sender: Address
-): ContractFactoryRoleGranted {
-  let contractFactoryRoleGrantedEvent = changetype<ContractFactoryRoleGranted>(
-    newMockEvent()
-  )
+): RoleGranted {
+  let roleGrantedEvent = changetype<RoleGranted>(newMockEvent())
 
-  contractFactoryRoleGrantedEvent.parameters = new Array()
+  roleGrantedEvent.parameters = new Array()
 
-  contractFactoryRoleGrantedEvent.parameters.push(
+  roleGrantedEvent.parameters.push(
     new ethereum.EventParam("role", ethereum.Value.fromFixedBytes(role))
   )
-  contractFactoryRoleGrantedEvent.parameters.push(
+  roleGrantedEvent.parameters.push(
     new ethereum.EventParam("account", ethereum.Value.fromAddress(account))
   )
-  contractFactoryRoleGrantedEvent.parameters.push(
+  roleGrantedEvent.parameters.push(
     new ethereum.EventParam("sender", ethereum.Value.fromAddress(sender))
   )
 
-  return contractFactoryRoleGrantedEvent
+  return roleGrantedEvent
 }
 
-export function createContractFactoryRoleRevokedEvent(
+export function createRoleRevokedEvent(
   role: Bytes,
   account: Address,
   sender: Address
-): ContractFactoryRoleRevoked {
-  let contractFactoryRoleRevokedEvent = changetype<ContractFactoryRoleRevoked>(
-    newMockEvent()
-  )
+): RoleRevoked {
+  let roleRevokedEvent = changetype<RoleRevoked>(newMockEvent())
 
-  contractFactoryRoleRevokedEvent.parameters = new Array()
+  roleRevokedEvent.parameters = new Array()
 
-  contractFactoryRoleRevokedEvent.parameters.push(
+  roleRevokedEvent.parameters.push(
     new ethereum.EventParam("role", ethereum.Value.fromFixedBytes(role))
   )
-  contractFactoryRoleRevokedEvent.parameters.push(
+  roleRevokedEvent.parameters.push(
     new ethereum.EventParam("account", ethereum.Value.fromAddress(account))
   )
-  contractFactoryRoleRevokedEvent.parameters.push(
+  roleRevokedEvent.parameters.push(
     new ethereum.EventParam("sender", ethereum.Value.fromAddress(sender))
   )
 
-  return contractFactoryRoleRevokedEvent
+  return roleRevokedEvent
 }

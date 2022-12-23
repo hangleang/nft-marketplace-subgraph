@@ -31,6 +31,8 @@ dataSources:
       abis:
         - name: Marketplace
           file: ./abis/Marketplace.json
+        - name: INFTs
+          file: ./abis/INFTs.json
         - name: IERC165Metadata
           file: ./abis/IERC165Metadata.json
       eventHandlers:
@@ -54,6 +56,28 @@ dataSources:
           handler: handleNewSale
         - event: Upgraded(indexed address)
           handler: handleUpgraded
+  - kind: ethereum
+    name: ContractFactory
+    network: goerli
+    source:
+      address: "0x9F74659aa838715FfAA5A1447147d9a747266ba3"
+      abi: ContractFactory
+      startBlock: 7997768
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - Collection
+      abis:
+        - name: ContractFactory
+          file: ./abis/ContractFactory.json
+        - name: IERC165Metadata
+          file: ./abis/IERC165Metadata.json
+      eventHandlers:
+        - event: ProxyDeployed(indexed bytes32,bytes,address,indexed address)
+          handler: handleProxyDeployed
+      file: ./src/contract-factory.ts
   - kind: ethereum
     name: NFTs
     network: goerli
