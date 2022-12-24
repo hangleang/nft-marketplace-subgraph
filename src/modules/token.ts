@@ -71,31 +71,29 @@ export function createOrLoadToken(collection: Collection, tokenId: BigInt, curre
             }
         }
 
+        token.tokenURI  = formatURI(tokenURI, null)
+        token.createdAt = currentTimestamp
+        token.updatedAt = currentTimestamp
+        token.save()
+
         if (tokenURI != '') {
             // fetch metadata from IPFS URI, then set metadata fields
             if (canLoadMetadata) {
-                token          = updateTokenMetadata(token, tokenURI)
-            } else {
-                token.tokenURI = tokenURI
+                updateTokenMetadata(token, tokenURI)
             }
         }
-
-        token.createdAt = currentTimestamp
-        token.updatedAt = currentTimestamp
     }
 
     return token
 }
 
-export function updateTokenMetadata(token: Token, tokenURI: string): Token {
+export function updateTokenMetadata(token: Token, tokenURI: string): void {
     const collectionAddress = Address.fromString(token.collection)
     const generatedName     = generateTokenName(collectionAddress, token.tokenId)
-    token.tokenURI          = formatURI(tokenURI, null)
     
     // try load metadata from URI
     const content           = loadContentFromURI(tokenURI)
 
-    token.isResolved        = content != null
     if (content) {
         const name          = getString(content, "name")
         const externalURL   = getString(content, "external_url")
@@ -105,6 +103,7 @@ export function updateTokenMetadata(token: Token, tokenURI: string): Token {
             image           = getString(content, "image_data")
         }
         
+        token.isResolved    = true
         token.name          = name && name != TOKEN_NAME_NOT_FOUND ? name : generatedName
         token.description   = getString(content, "description")
         token.contentURI    = image ? formatURI(image, tokenURI) : null
@@ -117,8 +116,6 @@ export function updateTokenMetadata(token: Token, tokenURI: string): Token {
         const decimals      = content.get("decimals")
         if (decimals != null && decimals.kind == JSONValueKind.NUMBER) {
             token.decimals  = decimals.toBigInt().toI32()
-        } else {
-            token.decimals  = 0
         }
 
         // get attributes link to this token
@@ -139,11 +136,8 @@ export function updateTokenMetadata(token: Token, tokenURI: string): Token {
                 }
             }
         }
-    } else {
-        token.name = generatedName;
+        token.save()
     }
-
-    return token;
 }
 
 export function createOrLoadTokenBalance(token: Token, owner: Account | null): TokenBalance {
