@@ -4,6 +4,10 @@
       "address": "",
       "startBlock": 5806610
     },
+    "ContractFactory": {
+      "address": "",
+      "startBlock": 5806610
+    },
     "NFTs": {
       "startBlock": 5806610
     }
@@ -13,6 +17,10 @@
       "address": "0xC10c4A2F88924222fB33B048b494318cdE757DB8",
       "startBlock": 28851303
     },
+    "ContractFactory": {
+      "address": "0xe22037363DCb370C7660EC80E1634D3eBaC48DB7",
+      "startBlock": 28851285
+    },
     "NFTs": {
       "startBlock": 28851285
     }
@@ -21,6 +29,10 @@
     "Marketplace": {
       "address": "0xd9a5fA95E554B124F07c0646a0eACAd9e00e06D2",
       "startBlock": 7925786
+    },
+    "ContractFactory": {
+      "address": "0x9F74659aa838715FfAA5A1447147d9a747266ba3",
+      "startBlock": 7997768
     },
     "NFTs": {
       "startBlock": 8015000

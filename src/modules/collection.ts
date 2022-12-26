@@ -44,25 +44,6 @@ export function createOrLoadCollection(address: Address, currentTimestamp: BigIn
     if (!try_owner.reverted) {
       collection.owner        = createOrLoadAccount(try_owner.value).id
     }
-    
-    // If have contractURI, then try load from IPFS
-    if (metadataURI) {
-      // fetch metadata from IPFS URI, then set metadata fields
-      const content = loadContentFromURI(metadataURI)
-
-      collection.isResolved = content != null
-      if (content) {
-        const name                = getString(content, "name")
-        const featuredImage       = getString(content, "image")
-        const bannerImage         = getString(content, "banner_image")
-        collection.name           = name ? name : nameFromContract
-        collection.description    = getString(content, "description")
-        collection.featuredImage  = featuredImage ? formatURI(featuredImage, metadataURI) : null
-        collection.bannerImage    = bannerImage ? formatURI(bannerImage, metadataURI) : null
-        collection.externalLink   = getString(content, "external_link")
-        collection.fallbackURL    = getString(content, "fallback_url")
-      }
-    }
 
     if (isERC721 && isERC1155) {
       collection.collectionType   = collections.SEMI // ERC721ERC1155          
@@ -82,6 +63,26 @@ export function createOrLoadCollection(address: Address, currentTimestamp: BigIn
     collection.createdAt          = currentTimestamp;
     collection.updatedAt          = currentTimestamp;
     collection.save()
+    
+    // If have contractURI, then try load from IPFS
+    if (metadataURI) {
+      // fetch metadata from IPFS URI, then set metadata fields
+      const content = loadContentFromURI(metadataURI)
+
+      collection.isResolved = content != null
+      if (content) {
+        const name                = getString(content, "name")
+        const featuredImage       = getString(content, "image")
+        const bannerImage         = getString(content, "banner_image")
+        collection.name           = name ? name : nameFromContract
+        collection.description    = getString(content, "description")
+        collection.featuredImage  = featuredImage ? formatURI(featuredImage, metadataURI) : null
+        collection.bannerImage    = bannerImage ? formatURI(bannerImage, metadataURI) : null
+        collection.externalLink   = getString(content, "external_link")
+        collection.fallbackURL    = getString(content, "fallback_url")
+      }
+      collection.save()
+    }
 
     // createOrLoadAccount(address)
   } 

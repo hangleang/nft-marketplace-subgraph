@@ -27,7 +27,7 @@ import * as activities from './constants/activities';
 import * as collections from './constants/collections';
 import { ONE_BIGINT } from './constants';
 import { Address, BigInt, ethereum, store } from '@graphprotocol/graph-ts';
-import { replaceURI } from './utils';
+import { formatURI, replaceURI } from './utils';
 import { Collection } from '../generated/schema';
 
 export function handleTransferSingle(event: TransferSingleEvent): void {
@@ -103,9 +103,11 @@ export function handleURI(event: URIEvent): void {
     if (collection != null) {
         let token           = createOrLoadToken(collection, event.params.id, currentBlock.timestamp)
         const tokenURI      = replaceURI(event.params.value, event.params.id)
-        token               = updateTokenMetadata(token, tokenURI)
+        token.tokenURI      = formatURI(tokenURI, null)
         token.updatedAt     = currentBlock.timestamp
         token.save()
+
+        updateTokenMetadata(token, tokenURI)
     }
 }
 
@@ -400,10 +402,11 @@ export function handleNFTRevealed(event: NFTRevealedEvent): void {
         for (let tokenId = startTokenId; tokenId <= endTokenId; tokenId = tokenId.plus(ONE_BIGINT)) {
             let token       = createOrLoadToken(collection, tokenId, currentBlock.timestamp, canLoadMetadata)
             const tokenURI  = replaceURI(revealedURI, tokenId)
-            token           = updateTokenMetadata(token, tokenURI)
+            token.tokenURI  = formatURI(tokenURI, null)
             token.updatedAt = currentBlock.timestamp
             token.save()
 
+            updateTokenMetadata(token, tokenURI)
             canLoadMetadata = token.isResolved
         }
     }
