@@ -20,7 +20,7 @@ import { createOrLoadAccount } from './modules/account';
 import { createOrLoadCollection } from './modules/collection';
 import { createActivity } from './modules/activity';
 import { createOrLoadOperator } from './modules/operator';
-import { createOrLoadToken, registerTransfer, updateTokenMetadata } from './modules/token';
+import { createOrLoadToken, registerTransfer, resolveTokenMetadata } from './modules/token';
 import { createOrLoadDropDetails, generateDropClaimConditionUID, createOrLoadDropClaimCondition } from './modules/drop';
 
 import * as activities from './constants/activities';
@@ -68,9 +68,8 @@ export function handleTransferBatch(event: TransferBatchEvent): void {
         
         // Make sure these length are equal
         if(tokenIds.length == values.length) {
-            let canLoadMetadata: bool = true;
             for (let i = 0; i < tokenIds.length; i++) {
-                canLoadMetadata = registerTransfer(event, collection, from, to, tokenIds[i], values[i], currentBlock.timestamp, canLoadMetadata)
+                registerTransfer(event, collection, from, to, tokenIds[i], values[i], currentBlock.timestamp)
             }
         }
     }
@@ -106,8 +105,8 @@ export function handleURI(event: URIEvent): void {
         token.tokenURI      = formatURI(tokenURI, null)
         token.updatedAt     = currentBlock.timestamp
         token.save()
-
-        updateTokenMetadata(token, tokenURI)
+        
+        resolveTokenMetadata(token.id, tokenURI)
     }
 }
 
@@ -120,15 +119,12 @@ export function handleTokensLazyMinted(event: TokensLazyMintedEvent): void {
     // Try create new collection entity, if not yet exist
     const collection    = createOrLoadCollection(event.address, currentBlock.timestamp)
     if (collection != null) {
-        let canLoadMetadata: bool = true;
         for (let tokenId = startTokenId; tokenId <= endTokenId; tokenId = tokenId.plus(ONE_BIGINT)) {
-            const token         = createOrLoadToken(collection, tokenId, currentBlock.timestamp, canLoadMetadata)
+            const token         = createOrLoadToken(collection, tokenId, currentBlock.timestamp)
             const dropDetail    = createOrLoadDropDetails(token.id)
 
             token.dropDetails   = dropDetail.id
             token.save()
-
-            canLoadMetadata     = token.isResolved
         }
     }
 }
@@ -398,16 +394,14 @@ export function handleNFTRevealed(event: NFTRevealedEvent): void {
     // Try create new collection entity, if not yet exist
     const collection        = createOrLoadCollection(event.address, currentBlock.timestamp)
     if (collection != null) {
-        let canLoadMetadata: bool = true;
         for (let tokenId = startTokenId; tokenId <= endTokenId; tokenId = tokenId.plus(ONE_BIGINT)) {
-            let token       = createOrLoadToken(collection, tokenId, currentBlock.timestamp, canLoadMetadata)
+            let token       = createOrLoadToken(collection, tokenId, currentBlock.timestamp)
             const tokenURI  = replaceURI(revealedURI, tokenId)
             token.tokenURI  = formatURI(tokenURI, null)
             token.updatedAt = currentBlock.timestamp
             token.save()
-
-            updateTokenMetadata(token, tokenURI)
-            canLoadMetadata = token.isResolved
+            
+            resolveTokenMetadata(token.id, tokenURI)
         }
     }
 }
@@ -418,10 +412,8 @@ function registerClaimed(collection: Collection, claimerAddress: Address, receiv
         const dropCondition = createOrLoadDropClaimCondition(dropDetail, claimIdx)
         const endTokenId    = startTokenId.plus(quantity)
 
-        let canLoadMetadata: bool = true;
         for (let tokenId = startTokenId; tokenId <= endTokenId; tokenId = tokenId.plus(ONE_BIGINT)) {
-            let token       = createOrLoadToken(collection, tokenId, event.block.timestamp, canLoadMetadata)
-            canLoadMetadata = token.isResolved
+            let token       = createOrLoadToken(collection, tokenId, event.block.timestamp)
 
             // Create claimed activity entity
             createActivity(activities.CLAIMED, event, token, claimerAddress, receiverAddress, ONE_BIGINT, dropCondition.currency, dropCondition.price.toBigDecimal())

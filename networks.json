@@ -28,14 +28,14 @@
   "goerli": {
     "Marketplace": {
       "address": "0xd9a5fA95E554B124F07c0646a0eACAd9e00e06D2",
-      "startBlock": 7925786
+      "startBlock": 8096522
     },
     "ContractFactory": {
       "address": "0x9F74659aa838715FfAA5A1447147d9a747266ba3",
-      "startBlock": 7997768
+      "startBlock": 8095603
     },
     "NFTs": {
-      "startBlock": 8015000
+      "startBlock": 8095603
     }
   }
 }
