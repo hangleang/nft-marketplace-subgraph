@@ -219,10 +219,10 @@
   dependencies:
     chalk "^4.1.0"
 
-"@csmith/release-it-calver-plugin@^2022.10.15":
-  version "2022.10.15"
-  resolved "https://registry.yarnpkg.com/@csmith/release-it-calver-plugin/-/release-it-calver-plugin-2022.10.15.tgz#d9ba6400fb795397246d08893cab3d971a38404e"
-  integrity sha512-2dFQwZnXh14XcfBfxmZ99IabhPfa01gKNQy6mj5izc6ggmcWZPstouLgGNcBtCJizVm05Dl8AyNN59AOW9UhPQ==
+"@csmith/release-it-calver-plugin@^2022.12.15":
+  version "2022.12.15"
+  resolved "https://registry.yarnpkg.com/@csmith/release-it-calver-plugin/-/release-it-calver-plugin-2022.12.15.tgz#41785ac2fcb561a1a2526be1206fec790876ef63"
+  integrity sha512-i6+2Nq52x4DyEre/ULyyZItrxfw7nGzkUzJ8sdq5NBec6W1RJrVmggtVFxBCd6Ut+ClcYCmKBa59Q3PloqDDJA==
   dependencies:
     calver "^22.8.4"
     chai "^4.2.0"
@@ -412,12 +412,23 @@
     "@ethersproject/properties" "^5.7.0"
     "@ethersproject/strings" "^5.7.0"
 
-"@graphprotocol/graph-cli@0.35.0":
-  version "0.35.0"
-  resolved "https://registry.yarnpkg.com/@graphprotocol/graph-cli/-/graph-cli-0.35.0.tgz#2f3c688f47ce763c2e8c6d8b86817fb21b3a367d"
-  integrity sha512-50tjeLZg3425fwueH8ORTZbPRSn4uICL0NK9XsJVriDPKCNnhyAIgJgOWaYyPAFgxR8LuyXYkoxIxZ5nduKbiw==
+"@float-capital/float-subgraph-uncrashable@^0.0.0-alpha.4":
+  version "0.0.0-internal-testing.1"
+  resolved "https://registry.yarnpkg.com/@float-capital/float-subgraph-uncrashable/-/float-subgraph-uncrashable-0.0.0-internal-testing.1.tgz#7d63e73c9b4ace4021f6744760bc766ee0ddbebf"
+  integrity sha512-0hE80CbV4Nmm2tTF3LrnyV/tlNBs0zZU3+1jRHMIRZTMiavPktH4SdjV1/MRQK1/Q+tT89ULiYWbpwCNqvyOiw==
   dependencies:
-    assemblyscript "0.19.10"
+    "@rescript/std" "9.0.0"
+    graphql "^16.6.0"
+    graphql-import-node "^0.0.5"
+    js-yaml "^4.1.0"
+
+"@graphprotocol/graph-cli@0.37.1":
+  version "0.37.1"
+  resolved "https://registry.yarnpkg.com/@graphprotocol/graph-cli/-/graph-cli-0.37.1.tgz#7532aa7550154238e9469ee79d245db3f9373bc9"
+  integrity sha512-3liXj1O/4tDOOGRcgs9T9sbz1940APhfnNIusN7L3lWgfUb5G6OyfwDgf/mfma/veoFhvdEyccDwhY4CDLp4jQ==
+  dependencies:
+    "@float-capital/float-subgraph-uncrashable" "^0.0.0-alpha.4"
+    assemblyscript "0.19.23"
     binary-install-raw "0.0.13"
     chalk "3.0.0"
     chokidar "3.5.1"
@@ -443,10 +454,10 @@
     which "2.0.2"
     yaml "1.9.2"
 
-"@graphprotocol/graph-ts@0.28.1":
-  version "0.28.1"
-  resolved "https://registry.yarnpkg.com/@graphprotocol/graph-ts/-/graph-ts-0.28.1.tgz#271affc77deb5a4a7c3f95d4b3b1daaa9818e51c"
-  integrity sha512-1wMLQ0cu84/6Ml3zcz9ya1zFzrDAzCj0dIGZ7Rz9upnRSXg5jjqU4DefO/OYrl2K2/OPso9hSAr6I4aue2pL1Q==
+"@graphprotocol/graph-ts@0.29.0":
+  version "0.29.0"
+  resolved "https://registry.yarnpkg.com/@graphprotocol/graph-ts/-/graph-ts-0.29.0.tgz#0b9fb72dece2dccf921f6f11518c7fec3830ab79"
+  integrity sha512-9rCouklL2CjlqtywcwSw++MzjBWlmm6274j4s5HokjOTxr64ER7SCKx+2iCqVV0/S7ivc63MzIHlCLSCjPjbiA==
   dependencies:
     assemblyscript "0.19.10"
 
@@ -638,6 +649,11 @@
     conventional-changelog "^3.1.25"
     conventional-recommended-bump "^6.1.0"
     semver "7.3.8"
+
+"@rescript/std@9.0.0":
+  version "9.0.0"
+  resolved "https://registry.yarnpkg.com/@rescript/std/-/std-9.0.0.tgz#df53f3fa5911cb4e85bd66b92e9e58ddf3e4a7e1"
+  integrity sha512-zGzFsgtZ44mgL4Xef2gOy1hrRVdrs9mcxCOOKZrIPsmbZW14yTkaF591GXxpQvjXiHtgZ/iA9qLyWH6oSReIxQ==
 
 "@sindresorhus/is@^5.2.0":
   version "5.3.0"
@@ -1034,7 +1050,7 @@ assemblyscript@0.19.10:
     binaryen "101.0.0-nightly.20210723"
     long "^4.0.0"
 
-assemblyscript@^0.19.20:
+assemblyscript@0.19.23, assemblyscript@^0.19.20:
   version "0.19.23"
   resolved "https://registry.yarnpkg.com/assemblyscript/-/assemblyscript-0.19.23.tgz#16ece69f7f302161e2e736a0f6a474e6db72134c"
   integrity sha512-fwOQNZVTMga5KRsfY80g7cpOl4PsFQczMwHzdtgoqLXaYhkhavufKb0sB0l3T1DUxpAufA0KNhlbpuuhZUwxMA==
@@ -3109,9 +3125,9 @@ globby@13.1.2:
     merge2 "^1.4.1"
     slash "^4.0.0"
 
-"gluegun@https://github.com/edgeandnode/gluegun#v4.3.1-pin-colors-dep":
+"gluegun@git+https://github.com/edgeandnode/gluegun.git#v4.3.1-pin-colors-dep":
   version "4.3.1"
-  resolved "https://github.com/edgeandnode/gluegun#b34b9003d7bf556836da41b57ef36eb21570620a"
+  resolved "git+https://github.com/edgeandnode/gluegun.git#b34b9003d7bf556836da41b57ef36eb21570620a"
   dependencies:
     apisauce "^1.0.1"
     app-module-path "^2.2.0"
@@ -3174,10 +3190,20 @@ graceful-fs@4.2.10, graceful-fs@^4.1.2, graceful-fs@^4.1.6, graceful-fs@^4.2.0, 
   resolved "https://registry.yarnpkg.com/graceful-fs/-/graceful-fs-4.2.10.tgz#147d3a006da4ca3ce14728c7aefc287c367d7a6c"
   integrity sha512-9ByhssR2fPVsNZj478qUUbKfmL0+t5BDVyjShtyZZLiK7ZDAArFFfopyOTj0M05wE2tJPisA4iTnnXl2YoPvOA==
 
+graphql-import-node@^0.0.5:
+  version "0.0.5"
+  resolved "https://registry.yarnpkg.com/graphql-import-node/-/graphql-import-node-0.0.5.tgz#caf76a6cece10858b14f27cce935655398fc1bf0"
+  integrity sha512-OXbou9fqh9/Lm7vwXT0XoRN9J5+WCYKnbiTalgFDvkQERITRmcfncZs6aVABedd5B85yQU5EULS4a5pnbpuI0Q==
+
 graphql@15.5.0:
   version "15.5.0"
   resolved "https://registry.yarnpkg.com/graphql/-/graphql-15.5.0.tgz#39d19494dbe69d1ea719915b578bf920344a69d5"
   integrity sha512-OmaM7y0kaK31NKG31q4YbD2beNYa6jBBKtMFT6gLYJljHLJr42IqJ8KX08u3Li/0ifzTU5HjmoOOrwa5BRLeDA==
+
+graphql@^16.6.0:
+  version "16.6.0"
+  resolved "https://registry.yarnpkg.com/graphql/-/graphql-16.6.0.tgz#c2dcffa4649db149f6282af726c8c83f1c7c5fdb"
+  integrity sha512-KPIBPDlW7NxrbT/eh4qPXz5FiFdL5UbaA0XUNz2Rp3Z3hqBSkbj0GVjwFDztsWVauZUWsbKHgMg++sk8UX0bkw==
 
 handlebars@^4.7.7:
   version "4.7.7"

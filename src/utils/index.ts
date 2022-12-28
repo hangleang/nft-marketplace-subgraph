@@ -12,7 +12,7 @@ export * from './base64';
 // OTHERS
 const URI_CONTAINS: string = "://";
 
-export function loadContentFromURI(uri: string): TypedMap<string, JSONValue> | null {
+export function loadMetadataFromURI(uri: string): TypedMap<string, JSONValue> | null {
     let value: JSONValue | null = null;
 
     if (isIPFS(uri)) {

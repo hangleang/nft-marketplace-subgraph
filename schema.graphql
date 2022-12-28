@@ -29,28 +29,35 @@ type Operator @entity {
 type Collection @entity {
   id: ID! # token address
   collectionType: CollectionType!
+  name: String!
+  symbol: String!
   owner: Account
   tokens: [Token!]! @derivedFrom(field: "collection")
   operators: [Operator!]! @derivedFrom(field: "collection")
 
   # metadata
   supportsMetadata: Boolean!
-  isResolved: Boolean
+  # isResolved: Boolean
   metadataURI: String
-  name: String!
-  symbol: String!
-  description: String
-  featuredImage: String
-  bannerImage: String
-  externalLink: String
-  fallbackURL: String
+  metadata: CollectionMetadata
   # traits: [CollectionTrait!] @derivedFrom(field: "collection")
+
   dropDetails: DropDetail
 
   statistics: CollectionStats!
   activities: [Activity!]! @derivedFrom(field: "collection")
   createdAt: BigInt! 
   updatedAt: BigInt!
+}
+
+type CollectionMetadata @entity {
+  id: ID!
+  name: String
+  description: String
+  featuredImage: String
+  bannerImage: String
+  externalLink: String
+  fallbackURL: String
 }
 
 type Token @entity {
@@ -63,25 +70,37 @@ type Token @entity {
   approval: Account!
 
   # metadata
-  isResolved: Boolean!
+  # isResolved: Boolean!
   tokenURI: String
+  metadata: TokenMetadata
+
+  dropDetails: DropDetail
+
+  activities: [Activity!]! @derivedFrom(field: "token")
+  createdAt: BigInt!
+  updatedAt: BigInt!
+}
+
+type TokenMetadata @entity {
+  id: ID!
   name: String!
   decimals: Int
   description: String
   contentURI: String
   externalURL: String
   fallbackURL: String
-  attributes: [Attribute!] @derivedFrom(field: "token")
+  attributes: [Attribute!] @derivedFrom(field: "tokenMetadata")
   bgColor: String
   animationURL: String
   youtubeURL: String
+}
 
-  # misc
-  dropDetails: DropDetail
-
-  activities: [Activity!]! @derivedFrom(field: "token")
-  createdAt: BigInt!
-  updatedAt: BigInt!
+type Attribute @entity {
+  id: ID!
+  tokenMetadata: TokenMetadata!
+  displayType: String!
+  traitType: String!
+  value: String!
 }
 
 type Listing @entity {
@@ -174,14 +193,6 @@ type CollectionStats @entity {
   averagePrice: BigDecimal!
 }
 
-type Attribute @entity {
-  id: ID!
-  token: Token!
-  displayType: String!
-  traitType: String!
-  value: String!
-}
-
 type DropDetail @entity {
   id: ID!
   startClaimConditionId: BigInt!
@@ -260,10 +271,10 @@ type _Schema_
   algorithm: proximityRank
   include: [
     {
-      entity: "Token",
+      entity: "TokenMetadata",
       fields: [
-        { name: "id" },
         { name: "name" },
+        { name: "description" },
       ]
     }
   ]

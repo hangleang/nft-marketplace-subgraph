@@ -5,18 +5,42 @@ import { HTTPS_PREFIX } from "./https";
 const IPFS_PREFIX: string = "ipfs://";
 
 // GATEWAYS
-const IPFS_GATEWAY: string = HTTPS_PREFIX + "ipfs.io/ipfs/";
+const GATEWAY_PATH: string = "/ipfs/";
+const IPFS_GATEWAY: string = HTTPS_PREFIX + "ipfs.io" + GATEWAY_PATH;
 
 const METADATA_PATH: string = "/metadata.json";
 
-export function isIPFS(uri: string): boolean {
-    return uri.startsWith(IPFS_PREFIX) ? true : false;
+export function isIPFS(uri: string): bool {
+    return uri.startsWith(IPFS_PREFIX) || isIPFSGateway(uri)
+}
+
+export function isIPFSGateway(url: string): bool {
+    return url.includes(GATEWAY_PATH);
+}
+
+export function ipfsToCID(uri: string): string | null {
+    if (isIPFS(uri)) {
+        if (isIPFSGateway(uri)) {
+            return uri.split(GATEWAY_PATH)[1]
+        } else {
+            return uri.split(IPFS_PREFIX)[1]
+        }
+    }
+    return null
+}
+
+export function CIDToIpfsURI(cid: string): string {
+    return IPFS_PREFIX.concat(cid);
+}
+
+export function toIPFSGateway(uri: string): string {
+    return uri.replace(IPFS_PREFIX, IPFS_GATEWAY);
 }
 
 export function ipfsToJSON(uri: string): JSONValue | null {
-    const ipfsHash = uri.replace(IPFS_PREFIX, "").replaceAll("//", "/");
+    const ipfsHash = ipfsToCID(uri);
 
-    if ((ipfsHash.startsWith("Qm") || ipfsHash.startsWith("ba")) && ipfsHash.length > 21) {
+    if (ipfsHash && (ipfsHash.startsWith("Qm") || ipfsHash.startsWith("ba")) && ipfsHash.length > 21) {
         const data = ipfs.cat(ipfsHash);
         
         if (data) {
@@ -41,10 +65,6 @@ export function concatImageIPFS(uri: string, image_path: string): string | null 
         }
     }
     return null;
-}
-
-export function toIPFSGateway(uri: string): string {
-    return uri.replace(IPFS_PREFIX, IPFS_GATEWAY);
 }
 
 function metadataURIToCID(metadataURI: string): string | null {

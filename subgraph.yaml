@@ -4,10 +4,6 @@ schema:
 features:
   - ipfsOnEthereumContracts
   - fullTextSearch
-  - grafting
-graft:
-  base: QmaBVgMHeXMwisGZf2zCx4uoSmU2bjS7BoCacFRW8k3DP7
-  block: 8102440
 dataSources:
   - kind: ethereum
     name: Marketplace
@@ -15,10 +11,10 @@ dataSources:
     source:
       abi: Marketplace
       address: "0xd9a5fA95E554B124F07c0646a0eACAd9e00e06D2"
-      startBlock: 7925786
+      startBlock: 8096522
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.6
+      apiVersion: 0.0.7
       language: wasm/assemblyscript
       file: ./src/marketplace.ts
       entities:
@@ -60,12 +56,12 @@ dataSources:
     name: ContractFactory
     network: goerli
     source:
-      address: "0x9F74659aa838715FfAA5A1447147d9a747266ba3"
       abi: ContractFactory
-      startBlock: 7997768
+      address: "0x9F74659aa838715FfAA5A1447147d9a747266ba3"
+      startBlock: 8095603
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.6
+      apiVersion: 0.0.7
       language: wasm/assemblyscript
       entities:
         - Collection
@@ -83,10 +79,10 @@ dataSources:
     network: goerli
     source:
       abi: INFTs
-      startBlock: 8015000
+      startBlock: 8095603
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.6
+      apiVersion: 0.0.7
       language: wasm/assemblyscript
       file: ./src/nfts.ts
       entities:
@@ -134,3 +130,31 @@ dataSources:
           handler: handleIERC721ClaimConditionsUpdated
         - event: IERC721MaxTotalSupplyUpdated(uint256)
           handler: handleIERC721MaxTotalSupplyUpdated
+templates:
+  - name: CollectionMetadataTemplate
+    kind: file/ipfs
+    network: goerli
+    mapping:
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      file: ./src/metadata.ts
+      handler: handleCollectionMetadata
+      entities:
+        - CollectionMetadata
+      abis:
+        - name: INFTs
+          file: ./abis/INFTs.json
+  - name: TokenMetadataTemplate
+    kind: file/ipfs
+    network: goerli
+    mapping:
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      file: ./src/metadata.ts
+      handler: handleTokenMetadata
+      entities:
+        - TokenMetadata
+        - Attribute
+      abis:
+        - name: INFTs
+          file: ./abis/INFTs.json
