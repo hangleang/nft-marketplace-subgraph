@@ -1,6 +1,6 @@
-export const CLAIMED = 'Claimed';
-export const MINTED = 'Minted';
-export const TRANSFERRED = 'Transferred';
+// export const CLAIMED = 'Claimed';
+// export const MINTED = 'Minted';
+// export const TRANSFERRED = 'Transferred';
 export const LIST = 'List';
 export const MAKE_OFFER = 'MakeOffer';
 export const SALE = 'Sale';

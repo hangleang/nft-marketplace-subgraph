@@ -1,14 +1,14 @@
 import { Address, BigDecimal, BigInt, Bytes, ethereum } from "@graphprotocol/graph-ts";
-import { Token, Activity, Account, Offer, Listing } from "../../generated/schema";
+import { Activity, Account, Offer, Listing } from "../../generated/schema";
 import { NULL_ADDRESS, ZERO_BIGINT, ZERO_DECIMAL } from "../constants";
 import { generateUID } from "../utils";
 
-import * as activities from '../constants/activities';
+// import * as activities from '../constants/activities';
 
 export function createActivity(
     type: string, 
     event: ethereum.Event,
-    token: Token, 
+    listing: Listing, 
     from: Address,
     to: Address | null, 
     quantity: BigInt = ZERO_BIGINT, 
@@ -18,9 +18,9 @@ export function createActivity(
     const block             = event.block
     const tx                = event.transaction
     let id                = tx.hash.toHex() + "-" + event.logIndex.toString()
-    if (type == activities.CLAIMED) {
-        id = id + "-" + token.tokenId.toString()
-    }
+    // if (type == activities.CLAIMED) {
+    //     id = id + "-" + token.tokenId.toString()
+    // }
     
     let activity            = new Activity(id)
     activity.activityType   = type
@@ -29,8 +29,8 @@ export function createActivity(
     activity.timestamp      = block.timestamp 
     activity.from           = from.toHex()
     activity.to             = to ? to.toHex() : null
-    activity.collection     = token.collection
-    activity.token          = token.id
+    activity.collection     = listing.collection
+    activity.listing        = listing.id
     activity.quantity       = quantity
     activity.currency       = currency
     activity.price          = price

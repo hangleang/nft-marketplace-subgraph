@@ -9,12 +9,12 @@ import {
   NewSale,
   Upgraded
 } from "../generated/Marketplace/Marketplace"
-import { Listing, Offer, Sale, Token } from "../generated/schema";
+import { Listing, Offer, Sale } from "../generated/schema";
 import { createActivity, createOrLoadOffer } from "./modules/activity";
 import { createListing } from "./modules/listing";
 import { createOrLoadMarketplace, increaseMarketplaceVersion } from "./modules/marketplace"
 import { createOrLoadAccount } from "./modules/account";
-import { createOrLoadToken } from "./modules/token";
+// import { createOrLoadToken } from "./modules/token";
 import { createOrLoadCollection, updateCollectionStats, updateCollectionStatsList } from "./modules/collection";
 
 import * as activities from './constants/activities';
@@ -40,17 +40,17 @@ export function handleAuctionClosed(event: AuctionClosed): void {
   if (listing != null) {
     createOrLoadAccount(closerAddress)
 
-    const token       = Token.load(listing.token)
-    if (token != null) {
+    // const token       = Token.load(listing.token)
+    // if (token != null) {
       // update collection stats listed amount
-      updateCollectionStatsList(Address.fromString(token.collection), listing.availableQty, false)
+      updateCollectionStatsList(Address.fromString(listing.collection), listing.availableQty, false)
       
       // create close auction activity entity
-      createActivity(activities.CLOSE_AUCTION, event, token, closerAddress, null, listing.availableQty)
+      createActivity(activities.CLOSE_AUCTION, event, listing, closerAddress, null, listing.availableQty)
 
       // remove listing entity from store
       store.remove('Listing', listingId)
-    }
+    // }
   }
 }
 
@@ -65,16 +65,16 @@ export function handleListingAdded(event: ListingAdded): void {
   const collection        = createOrLoadCollection(collectionAddress, currentBlock.timestamp)
   if (collection != null) {
     createOrLoadAccount(listerAddress)
-    const token           = createOrLoadToken(collection, listing.tokenId, currentBlock.timestamp)
+    // const token           = createOrLoadToken(collection, listing.tokenId, currentBlock.timestamp)
 
     // create listing entity from given params, also update token balance if auction listing
-    createListing(listingID, token, listing, currentBlock.timestamp);
+    const listingEntity = createListing(listingID, collection, listing.tokenId, listing, currentBlock.timestamp);
   
     // increase collection stats listed amount
     updateCollectionStatsList(collectionAddress, listing.quantity, true);
   
     // create list activity entity
-    createActivity(activities.LIST, event, token, listerAddress, null, listing.quantity, listing.currency, listing.buyoutPricePerToken.toBigDecimal());
+    createActivity(activities.LIST, event, listingEntity, listerAddress, null, listing.quantity, listing.currency, listing.buyoutPricePerToken.toBigDecimal());
   }
 }
 
@@ -88,17 +88,17 @@ export function handleListingRemoved(event: ListingRemoved): void {
   if (listing != null) {
     createOrLoadAccount(ownerAddress)
 
-    const token = Token.load(listing.token);
-    if (token != null) {
+    // const token = Token.load(listing.token);
+    // if (token != null) {
       // decrease collection stats listed amount
-      updateCollectionStatsList(Address.fromString(token.collection), listing.availableQty, false);
+      updateCollectionStatsList(Address.fromString(listing.collection), listing.availableQty, false);
 
       // create list activity entity
-      createActivity(activities.UNLIST, event, token, ownerAddress, null, listing.availableQty);
+      createActivity(activities.UNLIST, event, listing, ownerAddress, null, listing.availableQty);
 
       // remove listing entity from store
       store.remove('Listing', listingId)
-    }
+    // }
   }
 }
 
@@ -117,8 +117,8 @@ export function handleListingUpdated(event: ListingUpdated): void {
     if (!try_listingMapping.reverted) {
       const listingMapping    = try_listingMapping.value
 
-      const token = Token.load(listing.token);
-      if (token != null) {
+      // const token = Token.load(listing.token);
+      // if (token != null) {
         const updatedQty = listingMapping.getQuantity();
         const prevQty = listing.quantity;
 
@@ -127,7 +127,7 @@ export function handleListingUpdated(event: ListingUpdated): void {
           const qtyDiff = updatedQty.minus(prevQty).abs();
           
           // update collection stats listed amount
-          updateCollectionStatsList(Address.fromString(token.collection), qtyDiff, isAddUp);
+          updateCollectionStatsList(Address.fromString(listing.collection), qtyDiff, isAddUp);
         }
         
         listing.startTime = listingMapping.getStartTime();
@@ -141,8 +141,8 @@ export function handleListingUpdated(event: ListingUpdated): void {
         listing.save();  
       
         // create update listing activity entity
-        createActivity(activities.UPDATE_LISTING, event, token, ownerAddress, null, listing.quantity, listing.currency, listing.buyoutPricePerToken.toBigDecimal());
-      }
+        createActivity(activities.UPDATE_LISTING, event, listing, ownerAddress, null, listing.quantity, listing.currency, listing.buyoutPricePerToken.toBigDecimal());
+      // }
     }
   }
 }
@@ -163,8 +163,8 @@ export function handleNewOffer(event: NewOffer): void {
   if (listing != null) {
     const offeror       = createOrLoadAccount(offerorAddress)
 
-    const token = Token.load(listing.token);
-    if (token != null) {
+    // const token = Token.load(listing.token);
+    // if (token != null) {
       // init offer entity by tx hash
       const offer       = createOrLoadOffer(listing, offeror)
       offer.quantity    = quantity;
@@ -176,8 +176,8 @@ export function handleNewOffer(event: NewOffer): void {
       offer.save();
   
       // create update listing activity entity
-      createActivity(activities.MAKE_OFFER, event, token, offerorAddress, null, quantity, currency, offerAmount.divDecimal(quantity.toBigDecimal()));
-    }
+      createActivity(activities.MAKE_OFFER, event, listing, offerorAddress, null, quantity, currency, offerAmount.divDecimal(quantity.toBigDecimal()));
+    // }
   }
 }
 
@@ -200,8 +200,8 @@ export function handleNewSale(event: NewSale): void {
       const seller        = createOrLoadAccount(sellerAddress)
       const buyer         = createOrLoadAccount(buyerAddress)
 
-      const token = Token.load(listing.token);
-      if (token != null) {
+      // const token = Token.load(listing.token);
+      // if (token != null) {
         // get currency address which's used to make offer or buyout for the listing
         let currency: Bytes;
         const offer = Offer.load(generateUID([listing.id, buyer.id]));
@@ -234,8 +234,8 @@ export function handleNewSale(event: NewSale): void {
         updateCollectionStats(collectionAddress, quantity, totalPaid);
       
         // create update listing activity entity
-        createActivity(activities.SALE, event, token, sellerAddress, buyerAddress, quantity, currency, totalPaid.divDecimal(quantity.toBigDecimal()));
-      }
+        createActivity(activities.SALE, event, listing, sellerAddress, buyerAddress, quantity, currency, totalPaid.divDecimal(quantity.toBigDecimal()));
+      // }
     }
   }
 }

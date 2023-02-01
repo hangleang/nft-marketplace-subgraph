@@ -1,12 +1,13 @@
 import { BigInt } from "@graphprotocol/graph-ts";
 import { ListingAddedListingStruct } from "../../generated/Marketplace/Marketplace";
-import { Listing, Token } from "../../generated/schema";
+import { Collection, Listing } from "../../generated/schema";
 
 import { LISTING_TYPES } from '../constants/listings';
 
-export function createListing(listingID: BigInt, token: Token, listingOutput: ListingAddedListingStruct, currentTimestamp: BigInt): void {
+export function createListing(listingID: BigInt, collection: Collection, tokenId: BigInt, listingOutput: ListingAddedListingStruct, currentTimestamp: BigInt): Listing {
     const listing = new Listing(listingID.toString());
-    listing.token = token.id;
+    listing.collection = collection.id;
+    listing.tokenId = tokenId;
     listing.owner = listingOutput.tokenOwner.toHex();
     listing.listingType = LISTING_TYPES[listingOutput.listingType];
 
@@ -21,4 +22,6 @@ export function createListing(listingID: BigInt, token: Token, listingOutput: Li
     listing.createdAt = currentTimestamp;
     listing.updatedAt = currentTimestamp;
     listing.save();
+
+    return listing;
 }

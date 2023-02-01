@@ -56,16 +56,16 @@ export function createOrLoadCollection(
   // If support interface, build a collection entity
   if (isERC721 || isERC1155) {
     collection = new Collection(collectionAddress);
-    let try_name = contract.try_name();
-    let try_symbol = contract.try_symbol();
+    // let try_name = contract.try_name();
+    // let try_symbol = contract.try_symbol();
     let try_contractURI = contract.try_contractURI();
     let try_owner = contract.try_owner();
-    const nameFromContract = try_name.reverted ? "" : try_name.value;
+    // const nameFromContract = try_name.reverted ? "" : try_name.value;
     const metadataURI: string | null = try_contractURI.reverted
       ? null
       : try_contractURI.value;
-    collection.name = nameFromContract;
-    collection.symbol = try_symbol.reverted ? "" : try_symbol.value;
+    // collection.name = nameFromContract;
+    // collection.symbol = try_symbol.reverted ? "" : try_symbol.value;
     collection.metadataURI = metadataURI ? formatURI(metadataURI, null) : null;
 
     // Try load owner, then set to collection entity

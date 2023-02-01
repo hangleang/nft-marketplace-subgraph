@@ -3,7 +3,6 @@ schema:
   file: ./schema.graphql
 features:
   - ipfsOnEthereumContracts
-  - fullTextSearch
 dataSources:
   - kind: ethereum
     name: Marketplace
@@ -11,7 +10,7 @@ dataSources:
     source:
       abi: Marketplace
       address: "0xd9a5fA95E554B124F07c0646a0eACAd9e00e06D2"
-      startBlock: 8096522
+      startBlock: 7925786
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -58,11 +57,12 @@ dataSources:
     source:
       abi: ContractFactory
       address: "0x9F74659aa838715FfAA5A1447147d9a747266ba3"
-      startBlock: 8095603
+      startBlock: 7997768
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
       language: wasm/assemblyscript
+      file: ./src/contract-factory.ts
       entities:
         - Collection
       abis:
@@ -73,13 +73,12 @@ dataSources:
       eventHandlers:
         - event: ProxyDeployed(indexed bytes32,bytes,address,indexed address)
           handler: handleProxyDeployed
-      file: ./src/contract-factory.ts
   - kind: ethereum
     name: NFTs
     network: goerli
     source:
       abi: INFTs
-      startBlock: 8095603
+      startBlock: 7900000
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -88,7 +87,6 @@ dataSources:
       entities:
         - Account
         - Collection
-        - Token
         - Activity
       abis:
         - name: INFTs
@@ -96,34 +94,8 @@ dataSources:
         - name: IERC165Metadata
           file: ./abis/IERC165Metadata.json
       eventHandlers:
-        - event: Approval(indexed address,indexed address,indexed uint256)
-          handler: handleApproval
         - event: ApprovalForAll(indexed address,indexed address,bool)
           handler: handleApprovalForAll
-        - event: Transfer(indexed address,indexed address,indexed uint256)
-          handler: handleTransfer
-        - event: TransferBatch(indexed address,indexed address,indexed
-            address,uint256[],uint256[])
-          handler: handleTransferBatch
-        - event: TransferSingle(indexed address,indexed address,indexed
-            address,uint256,uint256)
-          handler: handleTransferSingle
-        - event: URI(string,indexed uint256)
-          handler: handleURI
-        - event: TokensClaimed(indexed uint256,indexed uint256,indexed
-            address,address,uint256)
-          handler: handleTokensClaimed
-        - event: TokensLazyMinted(uint256,uint256,string)
-          handler: handleTokensLazyMinted
-        - event: ClaimConditionsUpdated(uint256,uint256,uint256,bool)
-          handler: handleClaimConditionsUpdated
-        - event: MaxTotalSupplyUpdated(uint256,uint256)
-          handler: handleMaxTotalSupplyUpdated
-        - event: NFTRevealed(uint256,uint256,string)
-          handler: handleNFTRevealed
-        - event: IERC721TokensClaimed(indexed uint256,indexed address,indexed
-            address,uint256,uint256)
-          handler: handleIERC721TokensClaimed
         - event: IERC721TokensLazyMinted(uint256,uint256,string,bytes)
           handler: handleIERC721TokensLazyMinted
         - event: IERC721ClaimConditionsUpdated(uint256,uint256,bool)
@@ -141,20 +113,6 @@ templates:
       handler: handleCollectionMetadata
       entities:
         - CollectionMetadata
-      abis:
-        - name: INFTs
-          file: ./abis/INFTs.json
-  - name: TokenMetadataTemplate
-    kind: file/ipfs
-    network: goerli
-    mapping:
-      apiVersion: 0.0.7
-      language: wasm/assemblyscript
-      file: ./src/metadata.ts
-      handler: handleTokenMetadata
-      entities:
-        - TokenMetadata
-        - Attribute
       abis:
         - name: INFTs
           file: ./abis/INFTs.json
