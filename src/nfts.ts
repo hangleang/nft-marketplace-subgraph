@@ -19,7 +19,7 @@ import {
 import { createOrLoadAccount } from './modules/account';
 import { createOrLoadCollection } from './modules/collection';
 // import { createActivity } from './modules/activity';
-import { createOrLoadOperator } from './modules/operator';
+import { createOrLoadDelegation } from './modules/delegation';
 // import { createOrLoadToken, registerTransfer, resolveTokenMetadata } from './modules/token';
 import { createOrLoadDropDetails, generateDropClaimConditionUID, createOrLoadDropClaimCondition } from './modules/drop';
 
@@ -244,7 +244,7 @@ export function handleApprovalForAll(event: ApprovalForAllEvent): void {
     if (collection != null) {
         const owner         = createOrLoadAccount(ownerAddress)
         const operator      = createOrLoadAccount(operatorAddress)
-        const delegation    = createOrLoadOperator(collection, owner, operator)
+        const delegation    = createOrLoadDelegation(collection, owner, operator)
 
         delegation.approved = approved;
         delegation.save()

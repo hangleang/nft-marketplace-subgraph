@@ -13,12 +13,12 @@ type Account @entity {
   onsale: [Listing!]! @derivedFrom(field: "owner")
   collections: [Collection!]! @derivedFrom(field: "owner")
   offers: [Offer!]! @derivedFrom(field: "offeror")
-  operatorOwners: [Operator!] @derivedFrom(field: "owner")
-  operators: [Operator!] @derivedFrom(field: "operator")
+  delegators: [Delegation!] @derivedFrom(field: "owner")
+  delegatees: [Delegation!] @derivedFrom(field: "operator")
   activities: [Activity!]! @derivedFrom(field: "from")
 }
 
-type Operator @entity {
+type Delegation @entity {
   id: ID!
   collection: Collection!
 	owner: Account!
@@ -31,7 +31,7 @@ type Collection @entity {
   collectionType: CollectionType!
   owner: Account
   # tokens: [Token!]! @derivedFrom(field: "collection")
-  operators: [Operator!]! @derivedFrom(field: "collection")
+  delegations: [Delegation!]! @derivedFrom(field: "collection")
 
   # metadata
   supportsMetadata: Boolean!

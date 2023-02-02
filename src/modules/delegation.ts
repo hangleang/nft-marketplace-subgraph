@@ -1,12 +1,12 @@
-import { Account, Collection, Operator } from "../../generated/schema";
+import { Account, Collection, Delegation } from "../../generated/schema";
 import { generateUID } from "../utils";
 
-export function createOrLoadOperator(collection: Collection, owner: Account, operator: Account): Operator {
+export function createOrLoadDelegation(collection: Collection, owner: Account, operator: Account): Delegation {
     const id = generateUID([collection.id, owner.id, operator.id], "/");
-    let op = Operator.load(id);
+    let op = Delegation.load(id);
 
     if (op == null) {
-        op              = new Operator(id);
+        op              = new Delegation(id);
         op.collection   = collection.id;
         op.owner        = owner.id;
         op.operator     = operator.id;
