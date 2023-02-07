@@ -8,17 +8,17 @@ type Marketplace @entity {
 
 type Account @entity {
   id: ID! # account address
-  created: [Token!]! @derivedFrom(field: "creator")
-  owned: [TokenBalance!]! @derivedFrom(field: "owner")
+  # created: [Token!]! @derivedFrom(field: "creator")
+  # owned: [TokenBalance!]! @derivedFrom(field: "owner")
   onsale: [Listing!]! @derivedFrom(field: "owner")
   collections: [Collection!]! @derivedFrom(field: "owner")
   offers: [Offer!]! @derivedFrom(field: "offeror")
-  operatorOwners: [Operator!] @derivedFrom(field: "owner")
-  operators: [Operator!] @derivedFrom(field: "operator")
+  delegators: [Delegation!] @derivedFrom(field: "owner")
+  delegatees: [Delegation!] @derivedFrom(field: "operator")
   activities: [Activity!]! @derivedFrom(field: "from")
 }
 
-type Operator @entity {
+type Delegation @entity {
   id: ID!
   collection: Collection!
 	owner: Account!
@@ -29,22 +29,19 @@ type Operator @entity {
 type Collection @entity {
   id: ID! # token address
   collectionType: CollectionType!
-  name: String!
-  symbol: String!
   owner: Account
-  tokens: [Token!]! @derivedFrom(field: "collection")
-  operators: [Operator!]! @derivedFrom(field: "collection")
+  # tokens: [Token!]! @derivedFrom(field: "collection")
+  delegations: [Delegation!]! @derivedFrom(field: "collection")
 
   # metadata
   supportsMetadata: Boolean!
-  # isResolved: Boolean
   metadataURI: String
   metadata: CollectionMetadata
   # traits: [CollectionTrait!] @derivedFrom(field: "collection")
 
   dropDetails: DropDetail
-
   statistics: CollectionStats!
+
   activities: [Activity!]! @derivedFrom(field: "collection")
   createdAt: BigInt! 
   updatedAt: BigInt!
@@ -60,52 +57,54 @@ type CollectionMetadata @entity {
   fallbackURL: String
 }
 
-type Token @entity {
-  id: ID!
-  collection: Collection!
-  tokenId: BigInt!
-  creator: Account
-  balances: [TokenBalance!]! @derivedFrom(field: "token")
-  totalSupply: TokenBalance!
-  approval: Account!
+# type Token @entity {
+#   id: ID!
+#   collection: Collection!
+#   tokenId: BigInt!
+#   creator: Account
+#   balances: [TokenBalance!]! @derivedFrom(field: "token")
+#   totalSupply: TokenBalance!
+#   approval: Account!
 
-  # metadata
-  # isResolved: Boolean!
-  tokenURI: String
-  metadata: TokenMetadata
+#   # metadata
+#   # isResolved: Boolean!
+#   tokenURI: String
+#   metadata: TokenMetadata
 
-  dropDetails: DropDetail
+#   dropDetails: DropDetail
+#   listing: Listing 
 
-  activities: [Activity!]! @derivedFrom(field: "token")
-  createdAt: BigInt!
-  updatedAt: BigInt!
-}
+#   activities: [Activity!]! @derivedFrom(field: "token")
+#   createdAt: BigInt!
+#   updatedAt: BigInt!
+# }
 
-type TokenMetadata @entity {
-  id: ID!
-  name: String!
-  decimals: Int
-  description: String
-  contentURI: String
-  externalURL: String
-  fallbackURL: String
-  attributes: [Attribute!] @derivedFrom(field: "tokenMetadata")
-  bgColor: String
-  animationURL: String
-  youtubeURL: String
-}
+# type TokenMetadata @entity {
+#   id: ID!
+#   name: String!
+#   decimals: Int
+#   description: String
+#   contentURI: String
+#   externalURL: String
+#   fallbackURL: String
+#   attributes: [Attribute!] @derivedFrom(field: "tokenMetadata")
+#   bgColor: String
+#   animationURL: String
+#   youtubeURL: String
+# }
 
-type Attribute @entity {
-  id: ID!
-  tokenMetadata: TokenMetadata!
-  displayType: String!
-  traitType: String!
-  value: String!
-}
+# type Attribute @entity {
+#   id: ID!
+#   tokenMetadata: TokenMetadata!
+#   displayType: String!
+#   traitType: String!
+#   value: String!
+# }
 
 type Listing @entity {
   id: ID! 
-  token: Token!
+  collection: Collection!
+  tokenId: BigInt!
   owner: Account! 
   listingType: ListingType!
 
@@ -119,6 +118,7 @@ type Listing @entity {
   buyoutPricePerToken: BigInt!
   offers: [Offer!] @derivedFrom(field: "listing")
   
+  activities: [Activity!]! @derivedFrom(field: "listing")
   createdAt: BigInt!
   updatedAt: BigInt!
   soldAt: BigInt
@@ -159,7 +159,7 @@ type Activity @entity(immutable: true) {
   from: Account
   to: Account
   collection: Collection
-  token: Token
+  listing: Listing
   activityType: ActivityType!
   currency: Bytes
   price: BigDecimal
@@ -173,14 +173,14 @@ type Activity @entity(immutable: true) {
 
 # misc
 
-type TokenBalance @entity {
-  id: ID!
-  collection: Collection!
-  token: Token!
-  owner: Account
-  value: BigDecimal!
-  valueExact: BigInt!
-}
+# type TokenBalance @entity {
+#   id: ID!
+#   collection: Collection!
+#   token: Token!
+#   owner: Account
+#   value: BigDecimal!
+#   valueExact: BigInt!
+# }
 
 type CollectionStats @entity {
   id: ID!
@@ -235,9 +235,9 @@ enum ListingType {
 }
 
 enum ActivityType {
-  Claimed,
-  Minted,
-  Transferred,
+  # Claimed,
+  # Minted,
+  # Transferred,
   List,
   MakeOffer,
   Sale,
@@ -247,38 +247,38 @@ enum ActivityType {
 }
 
 # fullTextSearch
-type _Schema_
+# type _Schema_
 
-@fulltext(
-  name: "collectionsSearch"
-  language: en
-  algorithm: proximityRank
-  include: [
-    {
-      entity: "Collection",
-      fields: [
-        { name: "id" },
-        { name: "name" },
-        { name: "symbol" },
-      ]
-    }
-  ]
-)
+# @fulltext(
+#   name: "collectionsSearch"
+#   language: en
+#   algorithm: proximityRank
+#   include: [
+#     {
+#       entity: "Collection",
+#       fields: [
+#         { name: "id" },
+#         { name: "name" },
+#         { name: "symbol" },
+#       ]
+#     }
+#   ]
+# )
 
-@fulltext(
-  name: "tokenSearch"
-  language: en
-  algorithm: proximityRank
-  include: [
-    {
-      entity: "TokenMetadata",
-      fields: [
-        { name: "name" },
-        { name: "description" },
-      ]
-    }
-  ]
-)
+# @fulltext(
+#   name: "tokenSearch"
+#   language: en
+#   algorithm: proximityRank
+#   include: [
+#     {
+#       entity: "TokenMetadata",
+#       fields: [
+#         { name: "name" },
+#         { name: "description" },
+#       ]
+#     }
+#   ]
+# )
 
 # @fulltext(
 #   name: "accountSearch"
