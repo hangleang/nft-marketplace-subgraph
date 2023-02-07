@@ -118,6 +118,7 @@ type Listing @entity {
   buyoutPricePerToken: BigInt!
   offers: [Offer!] @derivedFrom(field: "listing")
   
+  activities: [Activity!]! @derivedFrom(field: "listing")
   createdAt: BigInt!
   updatedAt: BigInt!
   soldAt: BigInt
