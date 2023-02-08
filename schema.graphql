@@ -1,83 +1,480 @@
-type Marketplace @entity {
+# Subgraph Schema: NFT Marketplace
+# Version: 1.0.0
+
+# interfaces
+
+interface Statistic {
+  " Smart contract address "
   id: ID!
+
+  " Cumulative trade volume (in ETH) "
+  cumulativeTradeVolumeETH: BigDecimal!
+  
+  " Cumulative trade volume (in USD) "
+  cumulativeTradeVolumeUSD: BigDecimal!
+
+  " Revenue in ETH that goes to the marketplace protocol, aka protocol fee. "
+  marketplaceRevenueETH: BigDecimal!
+  
+  " Revenue in USD that goes to the marketplace protocol, aka protocol fee. "
+  marketplaceRevenueUSD: BigDecimal!
+
+  " Revenue in ETH that goes to creator, aka royalty fee. "
+  creatorRevenueETH: BigDecimal!
+  
+  " Revenue in USD that goes to creator, aka royalty fee. "
+  creatorRevenueUSD: BigDecimal!
+
+  " Sum of marketplaceRevenueETH and creatorRevenueETH. "
+  totalRevenueETH: BigDecimal!
+  
+  " Sum of marketplaceRevenueUSD and creatorRevenueUSD. "
+  totalRevenueUSD: BigDecimal!
+}
+
+interface Event {
+  id: ID!
+  collection: Collection
+  token: Token
+  activityType: ActivityType!
+  txHash: Bytes!
+  blockHash: Bytes!
+  timestamp: BigInt!
+  logIndex: Int!
+  blockNumber: BigInt!
+}
+
+# entities
+
+type Marketplace implements Statistic @entity {
+  " Smart contract address of the protocol's main contract"
+  id: ID!
+
+  " Name of the NFT marketplace, for example MyMarketplace. "
+  name: String!
+
+  " Slug of the NFT marketplace, for example MyMarketplace. "
+  slug: String!
+
+  " Version of the NFT marketplace implementation"
   version: Int!
 
+  cumulativeTradeVolumeETH: BigDecimal!
+  cumulativeTradeVolumeUSD: BigDecimal!
+  marketplaceRevenueETH: BigDecimal!
+  marketplaceRevenueUSD: BigDecimal!
+  creatorRevenueETH: BigDecimal!
+  creatorRevenueUSD: BigDecimal!
+  totalRevenueETH: BigDecimal!
+  totalRevenueUSD: BigDecimal!
+
+  " Listing on the NFT marketplace. "
+  listing: [Listing!]! @derivedFrom(field: "marketplace")
+
+  " Marketplace daily snapshots. "
+  snapshots: [MarketplaceDailySnapshot!]! @derivedFrom(field: "marketplace")
+
+  " Activities on the marketplace. "
+  activities: [Activity!]! @derivedFrom(field: "marketplace")
+
+  " Creation timestamp of the NFT marketplace. "
   createdAt: BigInt!
+
+  " Latest update timestamp of the NFT marketplace implementation. "
   updatedAt: BigInt!
 }
 
 type Account @entity {
-  id: ID! # account address
-  # created: [Token!]! @derivedFrom(field: "creator")
-  # owned: [TokenBalance!]! @derivedFrom(field: "owner")
-  onsale: [Listing!]! @derivedFrom(field: "owner")
-  collections: [Collection!]! @derivedFrom(field: "owner")
-  offers: [Offer!]! @derivedFrom(field: "offeror")
-  delegators: [Delegation!] @derivedFrom(field: "owner")
-  delegatees: [Delegation!] @derivedFrom(field: "operator")
-  activities: [Activity!]! @derivedFrom(field: "from")
-}
-
-type Delegation @entity {
+  " Wallet address of the user. "
   id: ID!
-  collection: Collection!
-	owner: Account!
-	operator: Account!
-	approved: Boolean!
+
+  " All listing from the user. "
+  onsale: [Listing!]! @derivedFrom(field: "owner")
+
+  " All collection owned by the user. "
+  collections: [Collection!]! @derivedFrom(field: "owner")
+
+  " Activities related to the user. "
+  activities: [Activity!]! @derivedFrom(field: "from")
+
+  " Passive activities related to the user. "
+  passiveActivities: [Activity!]! @derivedFrom(field: "to")
 }
 
-type Collection @entity {
-  id: ID! # token address
+type Collection implements Statistic @entity {
+  " Contract address. "
+  id: ID!
+
+  " NFT Collection Standard "
   collectionType: CollectionType!
+
+  " Owner of the collection "
   owner: Account
-  # tokens: [Token!]! @derivedFrom(field: "collection")
-  delegations: [Delegation!]! @derivedFrom(field: "collection")
 
-  # metadata
-  supportsMetadata: Boolean!
-  metadataURI: String
-  metadata: CollectionMetadata
-  # traits: [CollectionTrait!] @derivedFrom(field: "collection")
+  " Tokens for the collection"
+  tokens: [Token!]! @derivedFrom(field: "collection")
 
+  " Exists if the contract is Drop collection. "
   dropDetails: DropDetail
-  statistics: CollectionStats!
 
+  " Whether or not the collection is support metadata. "
+  supportsMetadata: Boolean!
+
+  " Contract URI of the collection. "
+  metadataURI: String
+
+  " Metadata of the collection. "
+  metadata: CollectionMetadata
+
+  cumulativeTradeVolumeETH: BigDecimal!
+  cumulativeTradeVolumeUSD: BigDecimal!
+  marketplaceRevenueETH: BigDecimal!
+  marketplaceRevenueUSD: BigDecimal!
+  creatorRevenueETH: BigDecimal!
+  creatorRevenueUSD: BigDecimal!
+  totalRevenueETH: BigDecimal!
+  totalRevenueUSD: BigDecimal!
+
+  " Collection daily snapshots. "
+  snapshots: [CollectionDailySnapshot!]! @derivedFrom(field: "collection")
+
+  " Activities of the collection. "
   activities: [Activity!]! @derivedFrom(field: "collection")
+
+  " Creation timestamp of the collection. "
   createdAt: BigInt! 
+
+  " Latest update timestamp of the collection. "
   updatedAt: BigInt!
 }
 
 type CollectionMetadata @entity {
+  " Contract address of the collection. "
   id: ID!
+
+  " Name of the collection metadata. "
   name: String
+
+  " Description of the collection metadata. "
   description: String
+
+  " Image of the collection metadata. "
   featuredImage: String
+  
+  " Banner Image of the collection metadata. "
   bannerImage: String
+
+  " External URL of the collection metadata. "
   externalLink: String
+
+  " Fallback URL of the collection image. "
   fallbackURL: String
 }
 
-# type Token @entity {
-#   id: ID!
-#   collection: Collection!
-#   tokenId: BigInt!
-#   creator: Account
-#   balances: [TokenBalance!]! @derivedFrom(field: "token")
-#   totalSupply: TokenBalance!
-#   approval: Account!
+type Token @entity {
+  " { collection-address }-{ tokenId } "
+  id: ID!
 
-#   # metadata
-#   # isResolved: Boolean!
-#   tokenURI: String
-#   metadata: TokenMetadata
+  " Collection address of the token. "
+  collection: Collection!
 
-#   dropDetails: DropDetail
-#   listing: Listing 
+  " Token ID of the NFT. "
+  tokenId: BigInt!
 
-#   activities: [Activity!]! @derivedFrom(field: "token")
-#   createdAt: BigInt!
-#   updatedAt: BigInt!
-# }
+  # " Token URI of the NFT. "
+  # tokenURI: String
+  # metadata: TokenMetadata
+
+  " All listing of the NFT. "
+  listings: [Listing!]! @derivedFrom(field: "token") 
+
+  " Activities related to the NFT. "
+  activities: [Activity!]! @derivedFrom(field: "token")
+}
+
+type Listing @entity {
+  " Unique Identifier used to manage the listing. "
+  id: ID! 
+
+  " Marketplace involved. "
+  marketplace: Marketplace!
+
+  " NFT to be listed. "
+  token: Token!
+
+  " Lister address. "
+  owner: Account! 
+
+  " Listing type or strategy. "
+  listingType: ListingType!
+
+  " Start time of the listing. "
+  startTime: BigInt!
+
+  " End time of the listing. "
+  endTime: BigInt!
+
+  " Total quantity of the listing. "
+  quantity: BigInt!
+
+  " Current available quantity of the listing. "
+  availableQty: BigInt!
+
+  " Currency accepted of the listing. "
+  currency: Bytes!
+
+  " Reserve price per token of the listing. "
+  reservePricePerToken: BigInt!
+
+  " Buyout price per token of the listing. "
+  buyoutPricePerToken: BigInt!
+  
+  " Creation timestamp of the listing. "
+  createdAt: BigInt!
+
+  " Latest update timestamp of the listing. "
+  updatedAt: BigInt!
+
+  " Sold out timestamp of the listing. "
+  soldAt: BigInt
+}
+
+type Offer @entity {
+  " Unique Identifier used to manage the listing. "
+  id: ID!
+
+  " Marketplace involved. "
+  marketplace: Marketplace!
+
+  " Listing involved. "
+  listing: Listing!
+
+  " Offerer account of the offer. "
+  offerer: Account!
+
+  " Amount of the NFT of the offer. It is set at 1 except for MultiEdition NFT. "
+  quantity: BigInt!
+
+  " Currency used to make the offer. "
+  currency: Bytes!
+
+  " Total amount of the currency of the offer. "
+  offerAmount: BigDecimal!
+
+  " Expired timestamp of the offer. "
+  expiredTimestamp: BigInt!
+  
+  # transaction
+  txHash: Bytes!
+  blockHash: Bytes!
+  timestamp: BigInt!
+  logIndex: Int!
+  blockNumber: BigInt!
+}
+
+type Activity implements Event @entity(immutable: true) {
+  " { Transaction hash }-{ Log index }-{ (optional) ID within bundle } "
+  id: ID!
+
+  " Type of the activity. "
+  activityType: ActivityType!
+
+  " Marketplace involved. "
+  marketplace: Marketplace!
+  
+  " Account address of who trigger the activity. "
+  from: Account!
+
+  " Account address of whom triggered the activity. "
+  to: Account
+
+  " Collection involved. "
+  collection: Collection
+
+  " NFT involved. "
+  token: Token
+
+  " Amount of the NFT for the activity. It is set at 1 except for MultiEdition NFT.  "
+  quantity: BigInt
+
+  " Which currency used to perform the activity. "
+  currency: Bytes
+
+  " Amount of the currency per token for the activity. "
+  price: BigDecimal
+
+  # transaction
+  txHash: Bytes!
+  blockHash: Bytes!
+  timestamp: BigInt!
+  logIndex: Int!
+  blockNumber: BigInt!
+}
+
+type DropDetail @entity {
+  id: ID!
+  startClaimConditionId: BigInt!
+  count: BigInt!
+  maxTotalSupply: BigInt!
+  claimConditions: [DropClaimCondition!]! @derivedFrom(field: "drop")
+}
+
+type DropClaimCondition @entity {
+  id: ID!
+  drop: DropDetail!
+  startTimestamp: BigInt!
+  maxClaimableSupply: BigInt!
+  quantityLimit: BigInt!
+  waitBetweenClaims: BigInt!
+  merkleRoot: Bytes!
+  price: BigInt!
+  currency: Bytes!
+}
+
+type MarketplaceDailySnapshot @entity {
+  " { Contract address }-{# of days since Unix epoch time} "
+  id: ID!
+
+  " The marketplace that this snapshot belongs to. "
+  marketplace: Marketplace!
+
+  " Block number where the snapshot is taken. "
+  blockNumber: BigInt!
+
+  " Block timestamp when the snapshot is taken. "
+  timestamp: BigInt!
+
+  " Number of collections listed on the marketplace. "
+  collectionCount: Int!
+
+  " Cumulative trade volume (in ETH) "
+  cumulativeTradeVolumeETH: BigDecimal!
+  
+  " Cumulative trade volume (in USD) "
+  cumulativeTradeVolumeUSD: BigDecimal!
+
+  " Revenue in ETH that goes to the marketplace protocol, aka protocol fee. "
+  marketplaceRevenueETH: BigDecimal!
+  
+  " Revenue in USD that goes to the marketplace protocol, aka protocol fee. "
+  marketplaceRevenueUSD: BigDecimal!
+
+  " Revenue in ETH that goes to creator, aka royalty fee. "
+  creatorRevenueETH: BigDecimal!
+  
+  " Revenue in USD that goes to creator, aka royalty fee. "
+  creatorRevenueUSD: BigDecimal!
+
+  " Sum of marketplaceRevenueETH and creatorRevenueETH. "
+  totalRevenueETH: BigDecimal!
+  
+  " Sum of marketplaceRevenueUSD and creatorRevenueUSD. "
+  totalRevenueUSD: BigDecimal!
+
+  " Trade count of the all collections on the marketplace. "
+  tradeCount: Int!
+
+  " Cumulative unique traders. "
+  cumulativeUniqueTraders: Int!
+
+  " Daily active traders. "
+  dailyActiveTraders: Int!
+
+  " Number of traded collections of the day. "
+  dailyTradedCollectionCount: Int!
+
+  " Number of traded items of the day. "
+  dailyTradedItemCount: Int!
+}
+
+type CollectionDailySnapshot @entity {
+  " { Contract address }-{# of days since epoch unix time } "
+  id: ID!
+
+  " The collection that this snapshot belongs to. "
+  collection: Collection!
+
+  " Block number where the snapshot is taken. "
+  blockNumber: BigInt!
+
+  " Block timestamp when the snapshot is taken. "
+  timestamp: BigInt!
+
+  " Royalty fee rate in percentage. E.g. 2.5% should be 2.5 "
+  royaltyFee: BigDecimal!
+
+  " Minimum sale price of the day (in ETH) "
+  dailyMinSalePriceETH: BigDecimal!
+  
+  " Minimum sale price of the day (in USD) "
+  dailyMinSalePriceUSD: BigDecimal!
+
+  " Maximum sale price of the day (in ETH) "
+  dailyMaxSalePriceETH: BigDecimal!
+  
+  " Maximum sale price of the day (in USD) "
+  dailyMaxSalePriceUSD: BigDecimal!
+
+  " Cumulative trade volume (in ETH) "
+  cumulativeTradeVolumeETH: BigDecimal!
+  
+  " Cumulative trade volume (in USD) "
+  cumulativeTradeVolumeUSD: BigDecimal!
+
+  " Daily trade volume (in ETH) "
+  dailyTradeVolumeETH: BigDecimal!
+  
+  " Daily trade volume (in USD) "
+  dailyTradeVolumeUSD: BigDecimal!
+
+  " Revenue in ETH that goes to the marketplace protocol, aka protocol fee. "
+  marketplaceRevenueETH: BigDecimal!
+  
+  " Revenue in USD that goes to the marketplace protocol, aka protocol fee. "
+  marketplaceRevenueUSD: BigDecimal!
+
+  " Revenue in ETH that goes to creator, aka royalty fee. "
+  creatorRevenueETH: BigDecimal!
+  
+  " Revenue in USD that goes to creator, aka royalty fee. "
+  creatorRevenueUSD: BigDecimal!
+
+  " Sum of marketplaceRevenueETH and creatorRevenueETH. "
+  totalRevenueETH: BigDecimal!
+  
+  " Sum of marketplaceRevenueUSD and creatorRevenueUSD. "
+  totalRevenueUSD: BigDecimal!
+
+  " Trade count of the collection on the marketplace. "
+  tradeCount: Int!
+
+  " Number of traded items of the day. "
+  dailyTradedItemCount: Int!
+}
+
+# enumerations
+
+enum CollectionType {
+  SingleEdition,
+  MultiEdition,
+  Unknown
+}
+
+enum ListingType {
+  Direct,
+  Auction,
+  Unknown
+}
+
+enum ActivityType {
+  List,
+  MakeOffer,
+  Sale,
+  UpdateListing,
+  CloseAuction,
+  Unlist,
+  Unknown
+}
 
 # type TokenMetadata @entity {
 #   id: ID!
@@ -100,151 +497,6 @@ type CollectionMetadata @entity {
 #   traitType: String!
 #   value: String!
 # }
-
-type Listing @entity {
-  id: ID! 
-  collection: Collection!
-  tokenId: BigInt!
-  owner: Account! 
-  listingType: ListingType!
-
-  # listing properties
-  startTime: BigInt!
-  endTime: BigInt!
-  quantity: BigInt!
-  availableQty: BigInt!
-  currency: Bytes!
-  reservePricePerToken: BigInt!
-  buyoutPricePerToken: BigInt!
-  offers: [Offer!] @derivedFrom(field: "listing")
-  
-  activities: [Activity!]! @derivedFrom(field: "listing")
-  createdAt: BigInt!
-  updatedAt: BigInt!
-  soldAt: BigInt
-}
-
-# event-based entities
-
-type Offer @entity {
-  id: ID!
-  listing: Listing!
-  offeror: Account!
-
-  quantity: BigInt!
-  offerAmount: BigInt! # total amount offer
-  currency: Bytes!
-  expiredTimestamp: BigInt!
-
-  # transaction
-  txHash: Bytes!
-  timestamp: BigInt!
-}
-
-type Sale @entity(immutable: true) {
-  id: ID!
-  listing: Listing!
-  seller: Account!
-  buyer: Account!
-  quantityBought: BigInt!
-  totalPaid: BigInt!
-
-  # transaction
-  txHash: Bytes!
-  timestamp: BigInt!
-}
-
-type Activity @entity(immutable: true) {
-  id: ID!
-  from: Account
-  to: Account
-  collection: Collection
-  listing: Listing
-  activityType: ActivityType!
-  currency: Bytes
-  price: BigDecimal
-  quantity: BigInt
-
-  # transaction
-  txHash: String!
-  blockHash: String!
-  timestamp: BigInt!
-}
-
-# misc
-
-# type TokenBalance @entity {
-#   id: ID!
-#   collection: Collection!
-#   token: Token!
-#   owner: Account
-#   value: BigDecimal!
-#   valueExact: BigInt!
-# }
-
-type CollectionStats @entity {
-  id: ID!
-  collection: Collection!
-  listed: BigInt!
-  sales: BigInt!
-  volume: BigInt!
-  highestSale: BigDecimal!
-  floorPrice: BigDecimal!
-  averagePrice: BigDecimal!
-}
-
-type DropDetail @entity {
-  id: ID!
-  startClaimConditionId: BigInt!
-  count: BigInt!
-  maxTotalSupply: BigInt!
-  claimConditions: [DropClaimCondition!]! @derivedFrom(field: "drop")
-}
-
-type DropClaimCondition @entity {
-  id: ID!
-  drop: DropDetail!
-  startTimestamp: BigInt!
-  maxClaimableSupply: BigInt!
-  # supplyClaimed: BigInt!
-  quantityLimit: BigInt!
-  waitBetweenClaims: BigInt!
-  merkleRoot: Bytes!
-  price: BigInt!
-  currency: Bytes!
-}
-
-# type CollectionTrait @entity{
-#   id: ID!
-#   collection: Collection!
-#   attribute: String!
-#   values: [String!]!
-# }
-
-# types
-
-enum CollectionType {
-  SingleEdition,
-  MultiEdition,
-  SemiMultiEdition
-}
-
-enum ListingType {
-  Direct,
-  Auction
-}
-
-enum ActivityType {
-  # Claimed,
-  # Minted,
-  # Transferred,
-  List,
-  MakeOffer,
-  Sale,
-  UpdateListing,
-  CloseAuction,
-  Unlist,
-}
 
 # fullTextSearch
 # type _Schema_

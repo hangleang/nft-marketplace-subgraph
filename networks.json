@@ -1,14 +1,11 @@
 {
   "mainnet": {
     "Marketplace": {
-      "address": "",
+      "address": "0x0000000000000000000000000000000000000000",
       "startBlock": 5806610
     },
     "ContractFactory": {
-      "address": "",
-      "startBlock": 5806610
-    },
-    "NFTs": {
+      "address": "0x0000000000000000000000000000000000000000",
       "startBlock": 5806610
     }
   },
@@ -20,9 +17,6 @@
     "ContractFactory": {
       "address": "0xe22037363DCb370C7660EC80E1634D3eBaC48DB7",
       "startBlock": 28851285
-    },
-    "NFTs": {
-      "startBlock": 28851285
     }
   },
   "goerli": {
@@ -33,9 +27,6 @@
     "ContractFactory": {
       "address": "0x9F74659aa838715FfAA5A1447147d9a747266ba3",
       "startBlock": 7997768
-    },
-    "NFTs": {
-      "startBlock": 7900000
     }
   }
 }

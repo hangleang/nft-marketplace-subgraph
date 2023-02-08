@@ -6,11 +6,11 @@ features:
 dataSources:
   - kind: ethereum
     name: Marketplace
-    network: goerli
+    network: mainnet
     source:
       abi: Marketplace
-      address: "0xd9a5fA95E554B124F07c0646a0eACAd9e00e06D2"
-      startBlock: 7925786
+      address: "0x0000000000000000000000000000000000000000"
+      startBlock: 5806610
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -53,11 +53,11 @@ dataSources:
           handler: handleUpgraded
   - kind: ethereum
     name: ContractFactory
-    network: goerli
+    network: mainnet
     source:
       abi: ContractFactory
-      address: "0x9F74659aa838715FfAA5A1447147d9a747266ba3"
-      startBlock: 7997768
+      address: "0x0000000000000000000000000000000000000000"
+      startBlock: 5806610
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -73,12 +73,12 @@ dataSources:
       eventHandlers:
         - event: ProxyDeployed(indexed bytes32,bytes,address,indexed address)
           handler: handleProxyDeployed
-  - kind: ethereum
-    name: NFTs
-    network: goerli
+templates:
+  - name: NFTs
+    kind: ethereum/contract
+    network: mainnet
     source:
       abi: INFTs
-      startBlock: 7900000
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -94,18 +94,15 @@ dataSources:
         - name: IERC165Metadata
           file: ./abis/IERC165Metadata.json
       eventHandlers:
-        - event: ApprovalForAll(indexed address,indexed address,bool)
-          handler: handleApprovalForAll
         - event: IERC721TokensLazyMinted(uint256,uint256,string,bytes)
           handler: handleIERC721TokensLazyMinted
         - event: IERC721ClaimConditionsUpdated(uint256,uint256,bool)
           handler: handleIERC721ClaimConditionsUpdated
         - event: IERC721MaxTotalSupplyUpdated(uint256)
           handler: handleIERC721MaxTotalSupplyUpdated
-templates:
   - name: CollectionMetadataTemplate
     kind: file/ipfs
-    network: goerli
+    network: mainnet
     mapping:
       apiVersion: 0.0.7
       language: wasm/assemblyscript
