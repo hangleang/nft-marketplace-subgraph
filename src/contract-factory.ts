@@ -1,8 +1,11 @@
 import { ProxyDeployed as ProxyDeployedEvent } from "../generated/ContractFactory/ContractFactory"
+import { NFTs } from "../generated/templates"
 import { createOrLoadCollection } from "./modules/collection"
 
 export function handleProxyDeployed(event: ProxyDeployedEvent): void {
-  const collectionAddress = event.params.proxy
+  // address of the new collection contract
+  NFTs.create(event.params.proxy);
 
-  createOrLoadCollection(collectionAddress, event.block.timestamp)
+  // create collection entity
+  createOrLoadCollection(event.params.proxy, event.block.timestamp)
 }

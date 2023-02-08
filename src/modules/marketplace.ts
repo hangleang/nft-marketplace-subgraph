@@ -1,26 +1,39 @@
-import { BigInt } from "@graphprotocol/graph-ts";
+import { Address, BigInt } from "@graphprotocol/graph-ts";
 import { Marketplace } from "../../generated/schema";
+import { ZERO_DECIMAL } from "../constants";
 
-export const DEFAULT_ID = 'nft-marketplace'
+export function createMarketplace(protocolAddress: Address, name: string, slug: string, version: number, currentTimestamp: BigInt): void {
+	const marketplace = new Marketplace(protocolAddress.toString());
+	marketplace.name 		= name;
+	marketplace.slug 		= slug;
+	marketplace.version = version as i32;
 
-export function createOrLoadMarketplace(currentTimestamp: BigInt): Marketplace {
-    let marketplace = Marketplace.load(DEFAULT_ID);
+	// initialize statistic
+	marketplace.cumulativeTradeVolumeETH = ZERO_DECIMAL;
+	marketplace.cumulativeTradeVolumeUSD = ZERO_DECIMAL;
+	marketplace.marketplaceRevenueETH = ZERO_DECIMAL;
+	marketplace.marketplaceRevenueUSD = ZERO_DECIMAL;
+	marketplace.creatorRevenueETH = ZERO_DECIMAL;
+	marketplace.creatorRevenueUSD = ZERO_DECIMAL;
+	marketplace.totalRevenueETH = ZERO_DECIMAL;
+	marketplace.totalRevenueUSD = ZERO_DECIMAL;
 
-    if (marketplace == null) {
-        marketplace = new Marketplace(DEFAULT_ID);
-        marketplace.version = 1;
-        marketplace.createdAt = currentTimestamp;
-        marketplace.updatedAt = currentTimestamp;
-        marketplace.save();
-    }
-
-    return marketplace;
+	// stamping the creation
+	marketplace.createdAt = currentTimestamp;
+	marketplace.updatedAt = currentTimestamp;
+	marketplace.save();
 }
 
-export function increaseMarketplaceVersion(currentTimestamp: BigInt): void {
-    let marketplace = createOrLoadMarketplace(currentTimestamp);
+export function loadMarketplace(protocolAddress: Address): Marketplace | null {
+	return Marketplace.load(protocolAddress.toString());
+}
 
-    marketplace.version += 1;
-    marketplace.updatedAt = currentTimestamp;
-    marketplace.save();
+export function increaseMarketplaceVersion(protocolAddress: Address, currentTimestamp: BigInt): void {
+  let marketplace = Marketplace.load(protocolAddress.toString());
+
+	if (marketplace != null) {
+		marketplace.version += 1;
+		marketplace.updatedAt = currentTimestamp;
+		marketplace.save();
+	}
 }

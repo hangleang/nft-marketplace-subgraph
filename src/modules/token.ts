@@ -31,11 +31,32 @@
 // import { createOrLoadAccount } from "./account";
 // import { createActivity } from "./activity";
 
+import { BigInt } from "@graphprotocol/graph-ts";
+import { Collection, Token } from "../../generated/schema";
+import { generateUID } from "../utils";
+
 // import * as collections from "../constants/collections";
 // import * as activities from "../constants/activities";
 
 // const TOTAL_SUPPLY_POSTFIX: string = "totalSupply";
 // const TOKEN_NAME_NOT_FOUND: string = "Untitled";
+
+export function createOrLoadToken(
+  collection: Collection,
+  tokenId: BigInt
+): Token {
+  const id  = generateUID([collection.id, tokenId.toString()])
+  let token = Token.load(id);
+
+  if (token == null) {
+    token             = new Token(id);
+    token.collection  = collection.id;
+    token.tokenId     = tokenId
+    token.save();
+  }
+
+  return token;
+}
 
 // export function createOrLoadToken(
 //   collection: Collection,
