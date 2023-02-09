@@ -2,11 +2,11 @@ import { Address, BigInt } from "@graphprotocol/graph-ts";
 import { Marketplace } from "../../generated/schema";
 import { ZERO_DECIMAL } from "../constants";
 
-export function createMarketplace(protocolAddress: Address, name: string, slug: string, version: number, currentTimestamp: BigInt): void {
+export function createMarketplace(protocolAddress: Address, name: string, slug: string, version: string, currentTimestamp: BigInt): void {
 	const marketplace = new Marketplace(protocolAddress.toString());
 	marketplace.name 		= name;
 	marketplace.slug 		= slug;
-	marketplace.version = version as i32;
+	marketplace.version = version;
 
 	// initialize statistic
 	marketplace.cumulativeTradeVolumeETH = ZERO_DECIMAL;
@@ -32,8 +32,9 @@ export function increaseMarketplaceVersion(protocolAddress: Address, currentTime
   let marketplace = Marketplace.load(protocolAddress.toString());
 
 	if (marketplace != null) {
-		marketplace.version += 1;
-		marketplace.updatedAt = currentTimestamp;
-		marketplace.save();
+		const version 				= parseInt(marketplace.version) + 1
+		marketplace.version 	= version.toString()
+		marketplace.updatedAt = currentTimestamp
+		marketplace.save()
 	}
 }
