@@ -1,5 +1,5 @@
-import { JSONValue } from "@graphprotocol/graph-ts";
-import { httpsToJSON, HTTPS_PREFIX } from "./https";
+// import { JSONValue } from "@graphprotocol/graph-ts";
+import { HTTPS_PREFIX } from "./https";
 
 // PROTOCOL
 const ARWEAVE_PREFIX: string = "ar://";
@@ -13,8 +13,8 @@ export function toArweaveGateway(uri: string): string {
     return uri.replace(ARWEAVE_PREFIX, ARWEAVE_GATEWAY)
 }
 
-export function arweaveToJSON(uri: string): JSONValue | null {
-    const arweaveEndpoint = toArweaveGateway(uri)
+// export function arweaveToJSON(uri: string): JSONValue | null {
+//     const arweaveEndpoint = toArweaveGateway(uri)
     
-    return httpsToJSON(arweaveEndpoint)
-}
+//     return httpsToJSON(arweaveEndpoint)
+// }

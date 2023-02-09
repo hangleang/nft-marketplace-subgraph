@@ -57,7 +57,7 @@ type Marketplace implements Statistic @entity {
   slug: String!
 
   " Version of the NFT marketplace implementation"
-  version: Int!
+  version: String!
 
   cumulativeTradeVolumeETH: BigDecimal!
   cumulativeTradeVolumeUSD: BigDecimal!

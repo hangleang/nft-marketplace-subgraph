@@ -24,7 +24,7 @@ import { Address, Bytes, store } from "@graphprotocol/graph-ts";
 import { generateUID } from "./utils";
 
 export function handleInitialized(event: Initialized): void {
-  createMarketplace(event.address, "WTF Marketplace", "wtf-marketplace", event.params.version, event.block.timestamp);
+  createMarketplace(event.address, "WTF Marketplace", "wtf-marketplace", event.params.version.toString(), event.block.timestamp);
 }
 
 export function handleUpgraded(event: Upgraded): void {
