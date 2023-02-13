@@ -1,10 +1,9 @@
 import { Address, BigDecimal, BigInt, Bytes, ethereum } from "@graphprotocol/graph-ts";
-import { Activity, Token, Marketplace } from "../../generated/schema";
+import { Activity, Token } from "../../generated/schema";
 import { NULL_ADDRESS, ZERO_BIGINT, ZERO_DECIMAL } from "../constants";
 import { generateUID } from "../utils";
 
 export function createActivity(
-    marketplace: Marketplace,
     type: string, 
     event: ethereum.Event,
     token: Token, 
@@ -21,7 +20,6 @@ export function createActivity(
     
     let activity            = new Activity(id)
     activity.activityType   = type
-    activity.marketplace    = marketplace.id
     activity.from           = from.toHex()
     activity.to             = to.toHex()
     activity.collection     = token.collection

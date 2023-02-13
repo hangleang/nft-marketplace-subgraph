@@ -1,5 +1,5 @@
 import { BigDecimal, BigInt, Bytes, ethereum } from "@graphprotocol/graph-ts"
-import { Account, Listing, Marketplace, Offer } from "../../generated/schema"
+import { Account, Listing, Offer } from "../../generated/schema"
 import { generateUID } from "../utils"
 
 export function loadOffer(listing: Listing, offerer: Account): Offer | null {
@@ -7,7 +7,6 @@ export function loadOffer(listing: Listing, offerer: Account): Offer | null {
 }
 
 export function createOffer(
-  marketplace: Marketplace,
   listing: Listing, 
   offerer: Account,
   quantity: BigInt, 
@@ -18,7 +17,6 @@ export function createOffer(
 ): void {
   const id          = generateUID([listing.id, offerer.id])
   const offer       = new Offer(id)
-  offer.marketplace = marketplace.id
   offer.listing     = listing.id
   offer.offerer     = offerer.id
   offer.quantity    = quantity

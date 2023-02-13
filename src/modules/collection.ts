@@ -45,73 +45,66 @@ export function createOrLoadCollection(
 
   // Try load collection entity
   let collection = Collection.load(collectionAddress);
-  if (collection != null) {
-    return collection;
-  }
+  if (collection == null) {
+    collection = new Collection(collectionAddress);
+    let try_contractURI = contract.try_contractURI();
+    let try_owner = contract.try_owner();
+    const metadataURI: string | null = try_contractURI.reverted
+      ? null
+      : try_contractURI.value;
+    collection.metadataURI = metadataURI ? formatURI(metadataURI, null) : null;
 
-  // If support interface, build a collection entity
-  collection = new Collection(collectionAddress);
-  let try_contractURI = contract.try_contractURI();
-  let try_owner = contract.try_owner();
-  const metadataURI: string | null = try_contractURI.reverted
-    ? null
-    : try_contractURI.value;
-  collection.metadataURI = metadataURI ? formatURI(metadataURI, null) : null;
-
-  // Try load owner, then set to collection entity
-  if (!try_owner.reverted) {
-    collection.owner = createOrLoadAccount(try_owner.value).id;
-  }
-
-  if (isERC721) {
-    collection.collectionType = collections.SINGLE; // ERC721
-    collection.supportsMetadata = introspection_5b5e139f; // ERC721Metadata
-  } else if (isERC1155) {
-    collection.collectionType = collections.MULTI; // ERC1155
-    collection.supportsMetadata = introspection_0e89341c; // ERC1155Metadata_URI
-  } else {
-    collection.collectionType = UNKNOWN; // Unknown
-    collection.supportsMetadata = false;
-  }
-  
-  // If have contractURI, then try load from IPFS
-  if (metadataURI) {
-    if (isIPFS(metadataURI)) {
-      let CID = ipfsToCID(metadataURI)
-      
-      if (CID) {
-        let context = new DataSourceContext();
-        context.setString("collectionAddress", collectionAddress);
-        
-        CollectionMetadataTemplate.createWithContext(CID, context);
-      }
-    } else {
-      // try load metadata from URI
-      const metadata = loadMetadataFromURI(metadataURI);
-      
-      if (metadata) {
-        updateCollectionMetadata(collectionAddress, metadataURI, metadata);
-      }
+    // Try load owner, then set to collection entity
+    if (!try_owner.reverted) {
+      collection.owner = createOrLoadAccount(try_owner.value).id;
     }
 
-    // explicit set metadata field
-    collection.metadata = collectionAddress;
+    if (isERC721) {
+      collection.collectionType = collections.SINGLE; // ERC721
+      collection.supportsMetadata = introspection_5b5e139f; // ERC721Metadata
+    } else if (isERC1155) {
+      collection.collectionType = collections.MULTI; // ERC1155
+      collection.supportsMetadata = introspection_0e89341c; // ERC1155Metadata_URI
+    } else {
+      collection.collectionType = UNKNOWN; // Unknown
+      collection.supportsMetadata = false;
+    }
+
+    // If have contractURI, then try load from IPFS
+    if (metadataURI) {
+      if (isIPFS(metadataURI)) {
+        let CID = ipfsToCID(metadataURI)
+        
+        if (CID) {
+          let context = new DataSourceContext();
+          context.setString("collectionAddress", collectionAddress);
+          
+          CollectionMetadataTemplate.createWithContext(CID, context);
+        }
+      } else {
+        // try load metadata from URI
+        const metadata = loadMetadataFromURI(metadataURI);
+        
+        if (metadata) {
+          updateCollectionMetadata(collectionAddress, metadataURI, metadata);
+        }
+      }
+
+      // explicit set metadata field
+      collection.metadata = collectionAddress;
+    }
+
+    // initialize statistic
+    collection.cumulativeTradeVolumeETH = ZERO_DECIMAL;
+    collection.marketplaceRevenueETH = ZERO_DECIMAL;
+    collection.creatorRevenueETH = ZERO_DECIMAL;
+    collection.totalRevenueETH = ZERO_DECIMAL;
+
+    // stamping the creation
+    collection.createdAt = currentTimestamp;
+    collection.updatedAt = currentTimestamp;
+    collection.save();
   }
-
-  // initialize statistic
-  collection.cumulativeTradeVolumeETH = ZERO_DECIMAL;
-  collection.cumulativeTradeVolumeUSD = ZERO_DECIMAL;
-  collection.marketplaceRevenueETH = ZERO_DECIMAL;
-  collection.marketplaceRevenueUSD = ZERO_DECIMAL;
-  collection.creatorRevenueETH = ZERO_DECIMAL;
-  collection.creatorRevenueUSD = ZERO_DECIMAL;
-  collection.totalRevenueETH = ZERO_DECIMAL;
-  collection.totalRevenueUSD = ZERO_DECIMAL;
-
-	// stamping the creation
-  collection.createdAt = currentTimestamp;
-  collection.updatedAt = currentTimestamp;
-  collection.save();
 
   return collection;
 }

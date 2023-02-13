@@ -11,8 +11,8 @@ import {
 } from "../generated/Marketplace/Marketplace"
 import { Listing, Token } from "../generated/schema";
 import { createActivity } from "./modules/activity";
-import { createWTFListing } from "./modules/listing";
-import { createMarketplace, increaseMarketplaceVersion, loadMarketplace } from "./modules/marketplace"
+import { createListing } from "./modules/listing";
+import { createOrLoadMarketplace, increaseMarketplaceVersion } from "./modules/marketplace"
 import { createOrLoadAccount } from "./modules/account";
 import { createOrLoadCollection } from "./modules/collection";
 import { createOrLoadToken } from "./modules/token";
@@ -21,14 +21,13 @@ import { createOffer, loadOffer } from "./modules/offer";
 import * as activities from './constants/activities';
 import { ZERO_BIGINT } from "./constants";
 import { Address, Bytes, store } from "@graphprotocol/graph-ts";
-import { generateUID } from "./utils";
 
 export function handleInitialized(event: Initialized): void {
-  createMarketplace(event.address, "WTF Marketplace", "wtf-marketplace", event.params.version.toString(), event.block.timestamp);
+  createOrLoadMarketplace(event.block.timestamp);
 }
 
 export function handleUpgraded(event: Upgraded): void {
-  increaseMarketplaceVersion(event.address, event.block.timestamp);
+  increaseMarketplaceVersion(event.block.timestamp);
 }
 
 export function handleListingAdded(event: ListingAdded): void {
@@ -44,47 +43,36 @@ export function handleListingAdded(event: ListingAdded): void {
   const collection        = createOrLoadCollection(collectionAddress, currentBlock.timestamp)
   const token             = createOrLoadToken(collection, listing.tokenId)
 
-  // load/check marketplace by contract address
-  const marketplace       = loadMarketplace(event.address);
-  if (marketplace != null) {
-    // create listing entity from given params, also update token balance if auction listing
-    createWTFListing(marketplace, listingID, token, listing, currentBlock.timestamp);
-  
-    // increase collection stats listed amount
-    // updateCollectionStatsList(collectionAddress, listing.quantity, true);
-  
-    // create list activity entity
-    createActivity(marketplace, activities.LIST, event, token, listerAddress, event.address, listing.quantity, listing.currency, listing.buyoutPricePerToken.toBigDecimal());
-  }
+  // create listing entity from given params, also update token balance if auction listing
+  createListing(listingID, token, listing, currentBlock.timestamp);
+
+  // increase collection stats listed amount
+  // updateCollectionStatsList(collectionAddress, listing.quantity, true);
+
+  // create list activity entity
+  createActivity(activities.LIST, event, token, listerAddress, event.address, listing.quantity, listing.currency, listing.buyoutPricePerToken.toBigDecimal());
 }
 
 export function handleListingRemoved(event: ListingRemoved): void {
   // init local vars from event params
-  const listingId     = event.params.listingId.toString();
+  const listingId     = event.params.listingId;
   const ownerAddress  = event.params.listingCreator;
   createOrLoadAccount(ownerAddress)
 
-  // load/check marketplace by contract address
-  const marketplace   = loadMarketplace(event.address);
-  if (marketplace != null) {
-    const id          = generateUID([marketplace.id, listingId.toString()])
+  const listing     = Listing.load(listingId.toString());
+  if (listing != null) {
 
-    // load/check listing by ID
-    const listing     = Listing.load(id);
-    if (listing != null) {
+    // load/check token by ID
+    const token     = Token.load(listing.token);
+    if (token != null) {
+      // decrease collection stats listed amount
+      // updateCollectionStatsList(Address.fromString(listing.collection), listing.availableQty, false);
 
-      // load/check token by ID
-      const token     = Token.load(listing.token);
-      if (token != null) {
-        // decrease collection stats listed amount
-        // updateCollectionStatsList(Address.fromString(listing.collection), listing.availableQty, false);
+      // create list activity entity
+      createActivity(activities.UNLIST, event, token, ownerAddress, event.address, listing.availableQty);
 
-        // create list activity entity
-        createActivity(marketplace, activities.UNLIST, event, token, ownerAddress, event.address, listing.availableQty);
-
-        // remove listing entity from store
-        store.remove('Listing', id)
-      }
+      // remove listing entity from store
+      store.remove('Listing', listingId.toString())
     }
   }
 }
@@ -96,46 +84,40 @@ export function handleListingUpdated(event: ListingUpdated): void {
   const ownerAddress        = event.params.listingCreator
   createOrLoadAccount(ownerAddress)
 
-  // load/check marketplace by contract address
-  const marketplace   = loadMarketplace(event.address);
-  if (marketplace != null) {
-    const id          = generateUID([marketplace.id, listingId.toString()])
+  // load/check listing by ID
+  const listing     = Listing.load(listingId.toString());
+  if (listing != null) {
+    const try_listingMapping  = Marketplace.bind(event.address).try_listings(listingId)
+    
+    if (!try_listingMapping.reverted) {
+      const listingMapping    = try_listingMapping.value
 
-    // load/check listing by ID
-    const listing     = Listing.load(id);
-    if (listing != null) {
-      const try_listingMapping  = Marketplace.bind(event.address).try_listings(listingId)
-      
-      if (!try_listingMapping.reverted) {
-        const listingMapping    = try_listingMapping.value
+      // load/check token by ID
+      const token     = Token.load(listing.token);
+      if (token != null) {
+        const updatedQty = listingMapping.getQuantity();
+        // const prevQty = listing.quantity;
 
-        // load/check token by ID
-        const token     = Token.load(listing.token);
-        if (token != null) {
-          const updatedQty = listingMapping.getQuantity();
-          // const prevQty = listing.quantity;
-
-          // if (updatedQty != prevQty) {
-          //   const isAddUp = updatedQty > prevQty;
-          //   const qtyDiff = updatedQty.minus(prevQty).abs();
-            
-          //   // update collection stats listed amount
-          //   // updateCollectionStatsList(Address.fromString(listing.collection), qtyDiff, isAddUp);
-          // }
+        // if (updatedQty != prevQty) {
+        //   const isAddUp = updatedQty > prevQty;
+        //   const qtyDiff = updatedQty.minus(prevQty).abs();
           
-          listing.startTime = listingMapping.getStartTime();
-          listing.endTime = listingMapping.getEndTime();
-          listing.quantity = updatedQty;
-          listing.availableQty = updatedQty;
-          listing.currency = listingMapping.getCurrency();
-          listing.reservePricePerToken = listingMapping.getReservePricePerToken();
-          listing.buyoutPricePerToken = listingMapping.getBuyoutPricePerToken();
-          listing.updatedAt = currentBlock.timestamp;
-          listing.save();  
+        //   // update collection stats listed amount
+        //   // updateCollectionStatsList(Address.fromString(listing.collection), qtyDiff, isAddUp);
+        // }
         
-          // create update listing activity entity
-          createActivity(marketplace, activities.UPDATE_LISTING, event, token, ownerAddress, event.address, listing.quantity, listing.currency, listing.buyoutPricePerToken.toBigDecimal());
-        }
+        listing.startTime = listingMapping.getStartTime();
+        listing.endTime = listingMapping.getEndTime();
+        listing.quantity = updatedQty;
+        listing.availableQty = updatedQty;
+        listing.currency = listingMapping.getCurrency();
+        listing.reservePricePerToken = listingMapping.getReservePricePerToken();
+        listing.buyoutPricePerToken = listingMapping.getBuyoutPricePerToken();
+        listing.updatedAt = currentBlock.timestamp;
+        listing.save();  
+      
+        // create update listing activity entity
+        createActivity(activities.UPDATE_LISTING, event, token, ownerAddress, event.address, listing.quantity, listing.currency, listing.buyoutPricePerToken.toBigDecimal());
       }
     }
   }
@@ -147,27 +129,21 @@ export function handleAuctionClosed(event: AuctionClosed): void {
   const closerAddress = event.params.closer
   createOrLoadAccount(closerAddress)
 
-  // load/check marketplace by contract address
-  const marketplace   = loadMarketplace(event.address);
-  if (marketplace != null) {
-    const id          = generateUID([marketplace.id, listingId.toString()]);
-    
-    // load/check listing by ID
-    const listing     = Listing.load(id)
-    if (listing != null) {
+  // load/check listing by ID
+  const listing     = Listing.load(listingId.toString())
+  if (listing != null) {
 
-      // load/check token by ID
-      const token     = Token.load(listing.token)
-      if (token != null) {
-        // update collection stats listed amount
-        // updateCollectionStatsList(Address.fromString(listing.collection), listing.availableQty, false)
-        
-        // create close auction activity entity
-        createActivity(marketplace, activities.CLOSE_AUCTION, event, token, closerAddress, event.address, listing.availableQty)
-  
-        // remove listing entity from store
-        store.remove('Listing', id)
-      }
+    // load/check token by ID
+    const token     = Token.load(listing.token)
+    if (token != null) {
+      // update collection stats listed amount
+      // updateCollectionStatsList(Address.fromString(listing.collection), listing.availableQty, false)
+      
+      // create close auction activity entity
+      createActivity(activities.CLOSE_AUCTION, event, token, closerAddress, event.address, listing.availableQty)
+
+      // remove listing entity from store
+      store.remove('Listing', listingId.toString())
     }
   }
 }
@@ -182,24 +158,18 @@ export function handleNewOffer(event: NewOffer): void {
   const expiredTimestamp = event.params.expiredTimestamp;
   const offeror         = createOrLoadAccount(offerorAddress)
 
-  // load/check marketplace by contract address
-  const marketplace   = loadMarketplace(event.address);
-  if (marketplace != null) {
-    const id          = generateUID([marketplace.id, listingId.toString()]);
+  // load/check listing by ID
+  const listing     = Listing.load(listingId.toString());
+  if (listing != null) {
 
-    // load/check listing by ID
-    const listing     = Listing.load(id);
-    if (listing != null) {
-
-      // load/check token by ID
-      const token = Token.load(listing.token);
-      if (token != null) {
-        // create offer entity on the listing
-        createOffer(marketplace, listing, offeror, quantity, currency, offerAmount.toBigDecimal(), expiredTimestamp, event)
-    
-        // create make offer activity entity
-        createActivity(marketplace, activities.MAKE_OFFER, event, token, offerorAddress, Address.fromString(listing.owner), quantity, currency, offerAmount.divDecimal(quantity.toBigDecimal()));
-      }
+    // load/check token by ID
+    const token = Token.load(listing.token);
+    if (token != null) {
+      // create offer entity on the listing
+      createOffer(listing, offeror, quantity, currency, offerAmount.toBigDecimal(), expiredTimestamp, event)
+  
+      // create make offer activity entity
+      createActivity(activities.MAKE_OFFER, event, token, offerorAddress, Address.fromString(listing.owner), quantity, currency, offerAmount.divDecimal(quantity.toBigDecimal()));
     }
   }
 }
@@ -218,40 +188,34 @@ export function handleNewSale(event: NewSale): void {
   createOrLoadAccount(sellerAddress)
   createOrLoadCollection(collectionAddress, currentTimestamp)
 
-  // load/check marketplace by contract address
-  const marketplace       = loadMarketplace(event.address);
-  if (marketplace != null) {
-    const id              = generateUID([marketplace.id, listingId.toString()])
+  // load/check listing by ID
+  const listing = Listing.load(listingId.toString());
+  if (listing != null) {
 
-    // load/check listing by ID
-    const listing = Listing.load(id);
-    if (listing != null) {
-
-      // load/check token by ID
-      const token = Token.load(listing.token);
-      if (token != null) {
-        // get currency accepted which's used to make offer or buyout for the listing
-        let currency: Bytes;
-        const offer = loadOffer(listing, buyer);
-        if (offer != null) {
-          currency = offer.currency;
-        } else {
-          currency = listing.currency;
-        }
-      
-        // update quantity in the listing after partial sold
-        listing.availableQty = listing.availableQty.minus(quantity);
-        if (listing.availableQty == ZERO_BIGINT) {
-          listing.soldAt = currentTimestamp;
-        }
-        listing.save();
-      
-        // update stats
-        // updateCollectionStats(collectionAddress, quantity, totalPaid);
-      
-        // create update listing activity entity
-        createActivity(marketplace, activities.SALE, event, token, sellerAddress, buyerAddress, quantity, currency, totalPaid.divDecimal(quantity.toBigDecimal()));
+    // load/check token by ID
+    const token = Token.load(listing.token);
+    if (token != null) {
+      // get currency accepted which's used to make offer or buyout for the listing
+      let currency: Bytes;
+      const offer = loadOffer(listing, buyer);
+      if (offer != null) {
+        currency = offer.currency;
+      } else {
+        currency = listing.currency;
       }
+    
+      // update quantity in the listing after partial sold
+      listing.availableQty = listing.availableQty.minus(quantity);
+      if (listing.availableQty == ZERO_BIGINT) {
+        listing.soldAt = currentTimestamp;
+      }
+      listing.save();
+    
+      // update stats
+      // updateCollectionStats(collectionAddress, quantity, totalPaid);
+    
+      // create update listing activity entity
+      createActivity(activities.SALE, event, token, sellerAddress, buyerAddress, quantity, currency, totalPaid.divDecimal(quantity.toBigDecimal()));
     }
   }
 }

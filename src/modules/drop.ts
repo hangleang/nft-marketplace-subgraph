@@ -1,6 +1,4 @@
 import { BigInt, Bytes } from "@graphprotocol/graph-ts";
-// import { IERC1155Drop__getClaimConditionByIdResultValue0Struct } from "../../generated/ERC1155/IERC1155Drop";
-// import { INFTs__getClaimConditionByIdResultValue0Struct, INFTs__getClaimConditionById1ResultValue0Struct } from "../../generated/NFTs/INFTs";
 import { DropClaimCondition, DropDetail } from "../../generated/schema";
 import { ZERO_BIGINT } from "../constants";
 import { generateUID } from "../utils";

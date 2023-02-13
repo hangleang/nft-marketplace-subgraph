@@ -2,23 +2,11 @@
   "mainnet": {
     "Marketplace": {
       "address": "0x0000000000000000000000000000000000000000",
-      "startBlock": 0
+      "startBlock": 5774644
     },
     "ContractFactory": {
       "address": "0x0000000000000000000000000000000000000000",
-      "startBlock": 0
-    },
-    "OpenSeaV1": {
-      "address": "0x7Be8076f4EA4A4AD08075C2508e481d6C946D12b",
       "startBlock": 5774644
-    },
-    "OpenSeaV2": {
-      "address": "0x7f268357A8c2552623316e2562D90e642bB538E5",
-      "startBlock": 14120913
-    },
-    "SeaportV1_1": {
-      "address": "0x00000000006c3852cbef3e08e8df289169ede581",
-      "startBlock": 14946565
     }
   },
   "mumbai": {
@@ -29,18 +17,6 @@
     "ContractFactory": {
       "address": "0xe22037363DCb370C7660EC80E1634D3eBaC48DB7",
       "startBlock": 28851285
-    },
-    "OpenSeaV1": {
-      "address": "0x0000000000000000000000000000000000000000",
-      "startBlock": 0
-    },
-    "OpenSeaV2": {
-      "address": "0x0000000000000000000000000000000000000000",
-      "startBlock": 0
-    },
-    "SeaportV1_1": {
-      "address": "0x00000000006c3852cbEf3e08E8dF289169EdE581",
-      "startBlock": 26933495
     }
   },
   "goerli": {
@@ -51,18 +27,6 @@
     "ContractFactory": {
       "address": "0x9F74659aa838715FfAA5A1447147d9a747266ba3",
       "startBlock": 7997768
-    },
-    "OpenSeaV1": {
-      "address": "0x0000000000000000000000000000000000000000",
-      "startBlock": 0
-    },
-    "OpenSeaV2": {
-      "address": "0x0000000000000000000000000000000000000000",
-      "startBlock": 0
-    },
-    "SeaportV1_1": {
-      "address": "0x00000000006c3852cbef3e08e8df289169ede581",
-      "startBlock": 7925786
     }
   }
 }

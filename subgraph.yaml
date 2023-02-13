@@ -6,11 +6,11 @@ features:
 dataSources:
   - kind: ethereum
     name: Marketplace
-    network: mainnet
+    network: goerli
     source:
       abi: Marketplace
-      address: "0x0000000000000000000000000000000000000000"
-      startBlock: 0
+      address: "0xd9a5fA95E554B124F07c0646a0eACAd9e00e06D2"
+      startBlock: 7925786
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -53,11 +53,11 @@ dataSources:
           handler: handleUpgraded
   - kind: ethereum
     name: ContractFactory
-    network: mainnet
+    network: goerli
     source:
       abi: ContractFactory
-      address: "0x0000000000000000000000000000000000000000"
-      startBlock: 0
+      address: "0x9F74659aa838715FfAA5A1447147d9a747266ba3"
+      startBlock: 7997768
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -73,108 +73,10 @@ dataSources:
       eventHandlers:
         - event: ProxyDeployed(indexed bytes32,bytes,address,indexed address)
           handler: handleProxyDeployed
-  - kind: ethereum
-    name: OpenSeaV1
-    network: mainnet
-    source:
-      abi: OpenSeaV1
-      address: "0x7Be8076f4EA4A4AD08075C2508e481d6C946D12b"
-      startBlock: 5774644
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.7
-      language: wasm/assemblyscript
-      entities:
-        - Account
-        - Marketplace
-        - Listing
-        - Offer
-        - Sale
-        - Activity
-      abis:
-        - name: OpenSeaV1
-          file: ./abis/OpenSeaV1.json
-      eventHandlers:
-        - event: OrderApprovedPartOne(indexed bytes32,address,indexed
-            address,address,uint256,uint256,uint256,uint256,indexed
-            address,uint8,uint8,uint8,address)
-          handler: handleOrderApprovedPartOne
-        - event: OrderApprovedPartTwo(indexed
-            bytes32,uint8,bytes,bytes,address,bytes,address,uint256,uint256,uint256,uint256,uint256,bool)
-          handler: handleOrderApprovedPartTwo
-        - event: OrderCancelled(indexed bytes32)
-          handler: handleOrderCancelled
-        - event: OrdersMatched(bytes32,bytes32,indexed address,indexed
-            address,uint256,indexed bytes32)
-          handler: handleOrdersMatched
-      file: ./src/opensea.ts
-  - kind: ethereum
-    name: OpenSeaV2
-    network: mainnet
-    source:
-      abi: OpenSeaV2
-      address: "0x7f268357A8c2552623316e2562D90e642bB538E5"
-      startBlock: 14120913
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.7
-      language: wasm/assemblyscript
-      entities:
-        - Account
-        - Marketplace
-        - Listing
-        - Offer
-        - Sale
-        - Activity
-      abis:
-        - name: OpenSeaV2
-          file: ./abis/OpenSeaV2.json
-      eventHandlers:
-        - event: OrderApprovedPartOne(indexed bytes32,address,indexed
-            address,address,uint256,uint256,uint256,uint256,indexed
-            address,uint8,uint8,uint8,address)
-          handler: handleOrderApprovedPartOne
-        - event: OrderApprovedPartTwo(indexed
-            bytes32,uint8,bytes,bytes,address,bytes,address,uint256,uint256,uint256,uint256,uint256,bool)
-          handler: handleOrderApprovedPartTwo
-        - event: OrderCancelled(indexed bytes32)
-          handler: handleOrderCancelled
-        - event: OrdersMatched(bytes32,bytes32,indexed address,indexed
-            address,uint256,indexed bytes32)
-          handler: handleOrdersMatched
-      file: ./src/opensea.ts
-  - kind: ethereum/contract
-    name: SeaportV1_1
-    network: mainnet
-    source:
-      abi: SeaportV1_1
-      address: "0x00000000006c3852cbef3e08e8df289169ede581"
-      startBlock: 14946565
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.7
-      language: wasm/assemblyscript
-      entities:
-        - Account
-        - Marketplace
-        - Listing
-        - Offer
-        - Sale
-        - Activity
-      abis:
-        - name: SeaportV1_1
-          file: ./abis/SeaportV1_1.json
-      eventHandlers:
-        - event: OrderFulfilled(bytes32,indexed address,indexed
-            address,address,(uint8,address,uint256,uint256)[],(uint8,address,uint256,uint256,address)[])
-          handler: handleOrderFulfilled
-        - event: OrderCancelled(bytes32,indexed address,indexed address)
-          handler: handlerOrderCancelled
-      file: ./src/seaport.ts
 templates:
   - name: NFTs
     kind: ethereum/contract
-    network: mainnet
+    network: goerli
     source:
       abi: INFTs
     mapping:
@@ -200,7 +102,7 @@ templates:
           handler: handleIERC721MaxTotalSupplyUpdated
   - name: CollectionMetadataTemplate
     kind: file/ipfs
-    network: mainnet
+    network: goerli
     mapping:
       apiVersion: 0.0.7
       language: wasm/assemblyscript
