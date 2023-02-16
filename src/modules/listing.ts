@@ -6,6 +6,7 @@ import { LISTING_TYPES } from '../constants/listings';
 
 export function createListing(listingID: BigInt, token: Token, listingOutput: ListingAddedListingStruct, currentTimestamp: BigInt): void {
     const listing       = new Listing(listingID.toString());
+    listing.collection  = token.collection
     listing.token       = token.id;
     listing.owner       = listingOutput.tokenOwner.toHex();
     listing.listingType = listingOutput.listingType < LISTING_TYPES.length ? LISTING_TYPES[listingOutput.listingType] : UNKNOWN;

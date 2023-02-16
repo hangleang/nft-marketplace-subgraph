@@ -17,8 +17,10 @@ export function createOffer(
 ): void {
   const id          = generateUID([listing.id, offerer.id])
   const offer       = new Offer(id)
+  offer.token       = listing.token
   offer.listing     = listing.id
   offer.offerer     = offerer.id
+  offer.offeree     = listing.owner
   offer.quantity    = quantity
   offer.currency    = currency
   offer.offerAmount = offerAmount
