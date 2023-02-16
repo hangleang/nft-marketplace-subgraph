@@ -25,18 +25,21 @@ type Marketplace @entity {
   updatedAt: BigInt!
 }
 
-type Account @entity {
+type Account @entity(immutable: true) {
   " Wallet address of the user. "
   id: ID!
 
   " All listing from the user. "
-  onsale: [Listing!]! @derivedFrom(field: "owner")
+  listings: [Listing!]! @derivedFrom(field: "owner")
 
   " All collection owned by the user. "
   collections: [Collection!]! @derivedFrom(field: "owner")
 
   " All offer made by the user. "
   offers: [Offer!]! @derivedFrom(field: "offerer")
+
+  " All offer given to the user. "
+  givenOffers: [Offer!]! @derivedFrom(field: "offeree")
 
   " Activities related to the user. "
   activities: [Activity!]! @derivedFrom(field: "from")
@@ -49,14 +52,17 @@ type Collection @entity {
   " Contract address. "
   id: ID!
 
-  " NFT Collection Standard "
+  " NFT Collection Standard. "
   collectionType: CollectionType!
 
-  " Owner of the collection "
+  " Owner of the collection. "
   owner: Account
 
-  " Tokens for the collection"
+  " Tokens for the collection. "
   tokens: [Token!]! @derivedFrom(field: "collection")
+
+  " Listings in the collection. "
+  listings: [Listing!]! @derivedFrom(field: "collection")
 
   " Exists if the contract is Drop collection. "
   dropDetails: DropDetail
@@ -111,7 +117,7 @@ type CollectionMetadata @entity {
   fallbackURL: String
 }
 
-type Token @entity {
+type Token @entity(immutable: true) {
   " { collection-address }-{ tokenId } "
   id: ID!
 
@@ -121,8 +127,11 @@ type Token @entity {
   " Token ID of the NFT. "
   tokenId: BigInt!
 
-  " All listing of the NFT. "
+  " Listing of the NFT. "
   listings: [Listing!]! @derivedFrom(field: "token") 
+
+  " Offers for the NFT. "
+  offers: [Offer!]! @derivedFrom(field: "token")
 
   " Activities related to the NFT. "
   activities: [Activity!]! @derivedFrom(field: "token")
@@ -131,6 +140,9 @@ type Token @entity {
 type Listing @entity {
   " Unique Identifier used to manage the listing. "
   id: ID! 
+
+  " Collection involved. "
+  collection: Collection!
 
   " NFT to be listed. "
   token: Token!
@@ -161,6 +173,9 @@ type Listing @entity {
 
   " Buyout price per token of the listing. "
   buyoutPricePerToken: BigInt!
+
+  " Offers of the listing. "
+  offers: [Offer!]! @derivedFrom(field: "listing")
   
   " Creation timestamp of the listing. "
   createdAt: BigInt!
@@ -176,11 +191,17 @@ type Offer @entity {
   " Unique Identifier used to manage the listing. "
   id: ID!
 
+  " Token involved. "
+  token: Token!
+
   " Listing involved. "
   listing: Listing!
 
   " Offerer account of the offer. "
   offerer: Account!
+
+  " Offeree account of the offer. "
+  offeree: Account!
 
   " Amount of the NFT of the offer. It is set at 1 except for MultiEdition NFT. "
   quantity: BigInt!
