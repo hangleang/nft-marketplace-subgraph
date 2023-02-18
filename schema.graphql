@@ -7,6 +7,9 @@ type Marketplace @entity {
   " Smart contract address of the protocol's main contract"
   id: ID!
 
+  " Platform fee rate in percentage. "
+  platformFee: BigDecimal!
+
   " Version of the NFT marketplace implementation"
   version: Int!
 
@@ -294,9 +297,6 @@ type MarketplaceDailySnapshot @entity {
 
   " Block timestamp when the snapshot is taken. "
   timestamp: BigInt!
-
-  " Number of collections listed on the marketplace. "
-  collectionCount: Int!
 
   " Cumulative trade volume (in ETH) "
   cumulativeTradeVolumeETH: BigDecimal!
