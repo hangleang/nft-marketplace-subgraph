@@ -58,6 +58,9 @@ type Collection @entity {
   " Owner of the collection. "
   owner: Account
 
+  " Royalty fee rate in percentage. "
+  royaltyFee: BigDecimal!
+
   " Tokens for the collection. "
   tokens: [Token!]! @derivedFrom(field: "collection")
 

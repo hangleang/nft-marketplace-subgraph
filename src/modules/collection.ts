@@ -7,9 +7,10 @@ import {
 } from "@graphprotocol/graph-ts";
 import {
   Collection,
+  CollectionDailySnapshot,
   CollectionMetadata,
 } from "../../generated/schema";
-import { UNKNOWN, ZERO_DECIMAL } from "../constants";
+import { MAX_DECIMAL, SECONDS_PER_DAY, UNKNOWN, ZERO_BIGINT, ZERO_DECIMAL } from "../constants";
 import {
   formatURI,
   getString,
@@ -69,6 +70,7 @@ export function createOrLoadCollection(
       collection.collectionType = UNKNOWN; // Unknown
       collection.supportsMetadata = false;
     }
+    collection.royaltyFee = ZERO_DECIMAL;
 
     // If have contractURI, then try load from IPFS
     if (metadataURI) {
@@ -135,4 +137,32 @@ export function updateCollectionMetadata(
   collectionMetadata.externalLink = getString(metadata, "external_link");
   collectionMetadata.fallbackURL = getString(metadata, "fallback_url");
   collectionMetadata.save();
+}
+
+export function getOrCreateCollectionDailySnapshot(
+  collection: Collection,
+  timestamp: BigInt
+): CollectionDailySnapshot {
+  const snapshotID = collection.id
+    .concat("-")
+    .concat((timestamp.toI32() / SECONDS_PER_DAY).toString());
+  let snapshot = CollectionDailySnapshot.load(snapshotID);
+  if (!snapshot) {
+    snapshot = new CollectionDailySnapshot(snapshotID);
+    snapshot.collection = collection.id;
+    snapshot.blockNumber = ZERO_BIGINT;
+    snapshot.timestamp = ZERO_BIGINT;
+    // snapshot.royaltyFee = BIGDECIMAL_ZERO;
+    snapshot.dailyMinSalePriceETH = MAX_DECIMAL;
+    snapshot.dailyMaxSalePriceETH = ZERO_DECIMAL;
+    snapshot.cumulativeTradeVolumeETH = ZERO_DECIMAL;
+    snapshot.dailyTradeVolumeETH = ZERO_DECIMAL;
+    snapshot.marketplaceRevenueETH = ZERO_DECIMAL;
+    snapshot.creatorRevenueETH = ZERO_DECIMAL;
+    snapshot.totalRevenueETH = ZERO_DECIMAL;
+    // snapshot.tradeCount = 0;
+    // snapshot.dailyTradedItemCount = 0;
+    snapshot.save();
+  }
+  return snapshot;
 }

@@ -6,11 +6,11 @@ features:
 dataSources:
   - kind: ethereum
     name: Marketplace
-    network: goerli
+    network: mumbai
     source:
       abi: Marketplace
-      address: "0xd9a5fA95E554B124F07c0646a0eACAd9e00e06D2"
-      startBlock: 7925786
+      address: "0xC10c4A2F88924222fB33B048b494318cdE757DB8"
+      startBlock: 28851303
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -30,6 +30,8 @@ dataSources:
           file: ./abis/INFTs.json
         - name: IERC165Metadata
           file: ./abis/IERC165Metadata.json
+        - name: IERC2981
+          file: ./abis/IERC2981.json
       eventHandlers:
         - event: AuctionClosed(indexed uint256,indexed address,indexed
             bool,address,address)
@@ -53,11 +55,11 @@ dataSources:
           handler: handleUpgraded
   - kind: ethereum
     name: ContractFactory
-    network: goerli
+    network: mumbai
     source:
       abi: ContractFactory
-      address: "0x9F74659aa838715FfAA5A1447147d9a747266ba3"
-      startBlock: 7997768
+      address: "0xe22037363DCb370C7660EC80E1634D3eBaC48DB7"
+      startBlock: 28851285
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -76,7 +78,7 @@ dataSources:
 templates:
   - name: NFTs
     kind: ethereum/contract
-    network: goerli
+    network: mumbai
     source:
       abi: INFTs
     mapping:
@@ -102,7 +104,7 @@ templates:
           handler: handleIERC721MaxTotalSupplyUpdated
   - name: CollectionMetadataTemplate
     kind: file/ipfs
-    network: goerli
+    network: mumbai
     mapping:
       apiVersion: 0.0.7
       language: wasm/assemblyscript
