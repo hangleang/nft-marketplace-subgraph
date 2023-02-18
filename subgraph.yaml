@@ -6,11 +6,11 @@ features:
 dataSources:
   - kind: ethereum
     name: Marketplace
-    network: mumbai
+    network: goerli
     source:
       abi: Marketplace
-      address: "0xC10c4A2F88924222fB33B048b494318cdE757DB8"
-      startBlock: 28851303
+      address: "0xd9a5fA95E554B124F07c0646a0eACAd9e00e06D2"
+      startBlock: 7925786
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -55,11 +55,11 @@ dataSources:
           handler: handleUpgraded
   - kind: ethereum
     name: ContractFactory
-    network: mumbai
+    network: goerli
     source:
       abi: ContractFactory
-      address: "0xe22037363DCb370C7660EC80E1634D3eBaC48DB7"
-      startBlock: 28851285
+      address: "0x9F74659aa838715FfAA5A1447147d9a747266ba3"
+      startBlock: 7997768
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -78,7 +78,7 @@ dataSources:
 templates:
   - name: NFTs
     kind: ethereum/contract
-    network: mumbai
+    network: goerli
     source:
       abi: INFTs
     mapping:
@@ -104,7 +104,7 @@ templates:
           handler: handleIERC721MaxTotalSupplyUpdated
   - name: CollectionMetadataTemplate
     kind: file/ipfs
-    network: mumbai
+    network: goerli
     mapping:
       apiVersion: 0.0.7
       language: wasm/assemblyscript

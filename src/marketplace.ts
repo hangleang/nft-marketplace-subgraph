@@ -13,7 +13,7 @@ import { IERC2981 } from '../generated/Marketplace/IERC2981'
 import { Listing, Token } from "../generated/schema";
 import { createActivity } from "./modules/activity";
 import { createListing } from "./modules/listing";
-import { createOrLoadMarketplace, increaseMarketplaceVersion } from "./modules/marketplace"
+import { createOrLoadMarketplace, getOrCreateMarketplaceDailySnapshot, increaseMarketplaceVersion } from "./modules/marketplace"
 import { createOrLoadAccount } from "./modules/account";
 import { createOrLoadCollection, getOrCreateCollectionDailySnapshot } from "./modules/collection";
 import { createOrLoadToken } from "./modules/token";
@@ -173,13 +173,14 @@ export function handleNewSale(event: NewSale): void {
   const buyerAddress      = event.params.buyer;
   const quantity          = event.params.quantityBought;
   const totalPaid         = event.params.totalPricePaid;
+
+  createOrLoadAccount(sellerAddress)
   const buyer             = createOrLoadAccount(buyerAddress)
+  const marketplace       = createOrLoadMarketplace(currentTimestamp)
+  const collection        = createOrLoadCollection(collectionAddress, currentTimestamp)
 
   const volumeETH         = totalPaid.toBigDecimal().div(MANTISSA_FACTOR);
   const priceETH          = volumeETH.div(quantity.toBigDecimal());
-
-  createOrLoadAccount(sellerAddress)
-  const collection = createOrLoadCollection(collectionAddress, currentTimestamp)
 
   // load/check listing by ID
   const listing = Listing.load(listingId.toString());
@@ -204,70 +205,89 @@ export function handleNewSale(event: NewSale): void {
       }
       listing.save();
 
-      //
-      // update collection
-      //
-      const marketplace = Marketplace.bind(event.address);
-      const erc2981 = IERC2981.bind(collectionAddress);
-      const try_supportERC2981 = erc2981.try_supportsInterface(Bytes.fromHexString("0x2a55205a")); // ERC2981
-      const try_platformFeeBps = marketplace.try_platformFeeBps()
-
       // if collection is supported royalty
-      if (!try_supportERC2981.reverted) {
-        const isERC2981 = try_supportERC2981.value
-        if (isERC2981) {
-          let royaltyFee = ZERO_DECIMAL;
-          if (collection.royaltyFee != royaltyFee) {
-            royaltyFee = collection.royaltyFee;
-          } else {
+      let royaltyFee = ZERO_DECIMAL;
+      if (collection.royaltyFee != royaltyFee) {
+        royaltyFee = collection.royaltyFee;
+      } else {
+        const erc2981 = IERC2981.bind(collectionAddress);
+        const try_supportERC2981 = erc2981.try_supportsInterface(Bytes.fromHexString("0x2a55205a")); // ERC2981
+
+        if (!try_supportERC2981.reverted) {
+          const isERC2981 = try_supportERC2981.value
+          if (isERC2981) {
             const try_royaltyInfo = erc2981.try_royaltyInfo(token.tokenId, totalPaid);
 
             if (!try_royaltyInfo.reverted) {
               const royaltyAmount = try_royaltyInfo.value.getRoyaltyAmount()
-  
+
               // calculate royalty fee for the collection
               royaltyFee = royaltyAmount.toBigDecimal()
                 .div(totalPaid.toBigDecimal())
                 .times(HUNDRED_DECIMAL);
-  
+
               // explicit set collection royalty fee
               collection.royaltyFee = royaltyFee
             }
           }
-
-          const deltaCreatorRevenueETH = volumeETH
-            .times(royaltyFee)
-            .div(HUNDRED_DECIMAL);
-          collection.creatorRevenueETH = collection.creatorRevenueETH.plus(
-            deltaCreatorRevenueETH
-          );
         }
       }
 
       // if marketplace is support platform fee
-      if (!try_platformFeeBps.reverted) {
-        const platformFeeRate = try_platformFeeBps.value.toBigDecimal().div(HUNDRED_DECIMAL)
-        const deltaMarketplaceRevenueETH = volumeETH
-          .times(platformFeeRate)
-          .div(HUNDRED_DECIMAL)
-        collection.marketplaceRevenueETH = collection.marketplaceRevenueETH.plus(
-          deltaMarketplaceRevenueETH
-        );
+      let plaformFee = ZERO_DECIMAL;
+      if (marketplace.platformFee != plaformFee) {
+        plaformFee = marketplace.platformFee
+      } else {
+        const marketplaceContract = Marketplace.bind(event.address);
+        const try_platformFeeBps = marketplaceContract.try_platformFeeBps()
+
+        if (!try_platformFeeBps.reverted) {
+          plaformFee = try_platformFeeBps.value.toBigDecimal().div(HUNDRED_DECIMAL)
+        }
+
+        // explicit set platform fee
+        marketplace.platformFee = plaformFee
       }
 
+      const deltaCreatorRevenueETH = volumeETH
+        .times(royaltyFee)
+        .div(HUNDRED_DECIMAL);
+      const deltaMarketplaceRevenueETH = volumeETH
+        .times(plaformFee)
+        .div(HUNDRED_DECIMAL)
+
+      // update collection
+      collection.creatorRevenueETH = collection.creatorRevenueETH.plus(
+        deltaCreatorRevenueETH
+      );
+      collection.marketplaceRevenueETH = collection.marketplaceRevenueETH.plus(
+        deltaMarketplaceRevenueETH
+      );
       collection.cumulativeTradeVolumeETH = collection.cumulativeTradeVolumeETH.plus(volumeETH);
       collection.totalRevenueETH = collection.marketplaceRevenueETH.plus(collection.creatorRevenueETH);
       collection.save()
 
-      //
+      // update marketplace
+      marketplace.cumulativeTradeVolumeETH =
+        marketplace.cumulativeTradeVolumeETH.plus(volumeETH);
+      marketplace.marketplaceRevenueETH = marketplace.marketplaceRevenueETH.plus(
+        deltaMarketplaceRevenueETH
+      );
+      marketplace.creatorRevenueETH = marketplace.creatorRevenueETH.plus(
+        deltaCreatorRevenueETH
+      );
+      marketplace.totalRevenueETH = marketplace.marketplaceRevenueETH.plus(
+        marketplace.creatorRevenueETH
+      );
+      marketplace.save();
+
       // take collection snapshot
-      //
       const collectionSnapshot = getOrCreateCollectionDailySnapshot(
         collection,
-        event.block.timestamp
+        currentTimestamp
       );
       collectionSnapshot.blockNumber = event.block.number;
-      collectionSnapshot.timestamp = event.block.timestamp;
+      collectionSnapshot.timestamp = currentTimestamp;
       // collectionSnapshot.royaltyFee = collection.royaltyFee;
       collectionSnapshot.dailyMinSalePriceETH = getMin(
         collectionSnapshot.dailyMinSalePriceETH,
@@ -287,6 +307,20 @@ export function handleNewSale(event: NewSale): void {
         collectionSnapshot.dailyTradeVolumeETH.plus(totalPaid.toBigDecimal());
       // collectionSnapshot.dailyTradedItemCount += newDailyTradedItem;
       collectionSnapshot.save();
+
+      // take marketplace snapshot
+      const marketplaceSnapshot = getOrCreateMarketplaceDailySnapshot(
+        marketplace,
+        currentTimestamp
+      );
+      marketplaceSnapshot.blockNumber = event.block.number;
+      marketplaceSnapshot.timestamp = currentTimestamp;
+      marketplaceSnapshot.cumulativeTradeVolumeETH =
+        marketplace.cumulativeTradeVolumeETH;
+      marketplaceSnapshot.marketplaceRevenueETH = marketplace.marketplaceRevenueETH;
+      marketplaceSnapshot.creatorRevenueETH = marketplace.creatorRevenueETH;
+      marketplaceSnapshot.totalRevenueETH = marketplace.totalRevenueETH;
+      marketplaceSnapshot.save();
     
       // create update listing activity entity
       createActivity(activities.SALE, event, token, sellerAddress, buyerAddress, quantity, currency, priceETH);
