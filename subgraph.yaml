@@ -51,6 +51,8 @@ dataSources:
         - event: NewSale(indexed uint256,indexed address,indexed
             address,address,uint256,uint256)
           handler: handleNewSale
+        - event: PlatformFeeInfoUpdated(indexed address,uint256)
+          handler: handlePlatformFeeInfoUpdated
         - event: Upgraded(indexed address)
           handler: handleUpgraded
   - kind: ethereum
@@ -96,12 +98,18 @@ templates:
         - name: IERC165Metadata
           file: ./abis/IERC165Metadata.json
       eventHandlers:
+        - event: DefaultRoyalty(indexed address,uint256)
+          handler: handleDefaultRoyalty
+        - event: RoyaltyForToken(indexed uint256,indexed address,uint256)
+          handler: handleRoyaltyForToken
         - event: IERC721TokensLazyMinted(uint256,uint256,string,bytes)
           handler: handleIERC721TokensLazyMinted
         - event: IERC721ClaimConditionsUpdated(uint256,uint256,bool)
           handler: handleIERC721ClaimConditionsUpdated
         - event: IERC721MaxTotalSupplyUpdated(uint256)
           handler: handleIERC721MaxTotalSupplyUpdated
+        - event: IERC721MaxWalletClaimCountUpdated(uint256)
+          handler: handleIERC721MaxWalletClaimCountUpdated
   - name: CollectionMetadataTemplate
     kind: file/ipfs
     network: goerli

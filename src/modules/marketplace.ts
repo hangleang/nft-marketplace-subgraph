@@ -1,4 +1,4 @@
-import { BigInt } from "@graphprotocol/graph-ts";
+import { BigDecimal, BigInt } from "@graphprotocol/graph-ts";
 import { Marketplace, MarketplaceDailySnapshot } from "../../generated/schema";
 import { SECONDS_PER_DAY, ZERO_BIGINT, ZERO_DECIMAL } from "../constants";
 
@@ -31,8 +31,18 @@ export function increaseMarketplaceVersion(currentTimestamp: BigInt): void {
   let marketplace = Marketplace.load(DEFAULT_ID);
 
 	if (marketplace != null) {
-		marketplace.version += 1;
+		marketplace.version 	+= 1;
 		marketplace.updatedAt = currentTimestamp
+		marketplace.save()
+	}
+}
+
+export function setPlatformFee(plaformFee: BigDecimal, currentTimestamp: BigInt): void {
+	let marketplace = Marketplace.load(DEFAULT_ID);
+
+	if (marketplace != null) {
+		marketplace.platformFee = plaformFee;
+		marketplace.updatedAt 	= currentTimestamp
 		marketplace.save()
 	}
 }

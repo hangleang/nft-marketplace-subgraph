@@ -52,6 +52,7 @@ export function createOrLoadToken(
     token             = new Token(id);
     token.collection  = collection.id;
     token.tokenId     = tokenId
+    token.royaltyFee  = collection.royaltyFee;
     token.save();
   }
 

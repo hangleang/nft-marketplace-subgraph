@@ -133,6 +133,9 @@ type Token @entity(immutable: true) {
   " Token ID of the NFT. "
   tokenId: BigInt!
 
+  " Royalty fee rate in percentage. "
+  royaltyFee: BigDecimal!
+
   " Listing of the NFT. "
   listings: [Listing!]! @derivedFrom(field: "token") 
 
@@ -269,7 +272,8 @@ type DropDetail @entity {
   id: ID!
   startClaimConditionId: BigInt!
   count: BigInt!
-  maxTotalSupply: BigInt!
+  maxTotalSupply: BigInt
+  maxWalletClaim: BigInt
   claimConditions: [DropClaimCondition!]! @derivedFrom(field: "drop")
 }
 
@@ -277,7 +281,7 @@ type DropClaimCondition @entity {
   id: ID!
   drop: DropDetail!
   startTimestamp: BigInt!
-  maxClaimableSupply: BigInt!
+  maxClaimableSupply: BigInt
   quantityLimit: BigInt!
   waitBetweenClaims: BigInt!
   merkleRoot: Bytes!

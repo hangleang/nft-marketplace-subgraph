@@ -1,46 +1,49 @@
 import {
-  AuctionClosed,
-  Initialized,
-  ListingAdded,
-  ListingRemoved,
-  ListingUpdated,
   Marketplace,
-  NewOffer,
-  NewSale,
-  Upgraded
+  AuctionClosed as AuctionClosedEvent,
+  Initialized as InitializedEvent,
+  ListingAdded as ListingAddedEvent,
+  ListingRemoved as ListingRemovedEvent,
+  ListingUpdated as ListingUpdatedEvent,
+  NewOffer as NewOfferEvent,
+  NewSale as NewSaleEvent,
+  PlatformFeeInfoUpdated as PlatformFeeInfoUpdatedEvent,
+  Upgraded as UpgradedEvent
 } from "../generated/Marketplace/Marketplace"
-import { IERC2981 } from '../generated/Marketplace/IERC2981'
 import { Listing, Token } from "../generated/schema";
 import { createActivity } from "./modules/activity";
 import { createListing } from "./modules/listing";
-import { createOrLoadMarketplace, getOrCreateMarketplaceDailySnapshot, increaseMarketplaceVersion } from "./modules/marketplace"
+import { createOrLoadMarketplace, getOrCreateMarketplaceDailySnapshot, increaseMarketplaceVersion, setPlatformFee } from "./modules/marketplace"
 import { createOrLoadAccount } from "./modules/account";
 import { createOrLoadCollection, getOrCreateCollectionDailySnapshot } from "./modules/collection";
 import { createOrLoadToken } from "./modules/token";
 import { createOffer, loadOffer } from "./modules/offer";
 
 import * as activities from './constants/activities';
-import { MANTISSA_FACTOR, HUNDRED_DECIMAL, ZERO_BIGINT, ZERO_DECIMAL } from "./constants";
+import { MANTISSA_FACTOR, HUNDRED_DECIMAL, ZERO_BIGINT } from "./constants";
 import { Address, BigDecimal, Bytes, store } from "@graphprotocol/graph-ts";
 import { getMax, getMin } from "./utils";
 
-export function handleInitialized(event: Initialized): void {
+export function handleInitialized(event: InitializedEvent): void {
   createOrLoadMarketplace(event.block.timestamp);
 }
 
-export function handleUpgraded(event: Upgraded): void {
+export function handleUpgraded(event: UpgradedEvent): void {
   increaseMarketplaceVersion(event.block.timestamp);
 }
 
-export function handleListingAdded(event: ListingAdded): void {
+export function handlePlatformFeeInfoUpdated(event: PlatformFeeInfoUpdatedEvent): void {
+  const plaformFee = event.params.platformFeeBps.divDecimal(HUNDRED_DECIMAL);
+  setPlatformFee(plaformFee, event.block.timestamp);
+}
+
+export function handleListingAdded(event: ListingAddedEvent): void {
   // init local vars from event params
   const currentBlock      = event.block;
   const collectionAddress = event.params.assetContract;
   const listerAddress     = event.params.lister;
   const listingID         = event.params.listingId;
   const listing           = event.params.listing;
-
-  const priceETH          = listing.buyoutPricePerToken.toBigDecimal().div(MANTISSA_FACTOR)
 
   // explicit create entities in case not exists
   createOrLoadAccount(listerAddress)
@@ -51,10 +54,10 @@ export function handleListingAdded(event: ListingAdded): void {
   createListing(listingID, token, listing, currentBlock.timestamp);
 
   // create list activity entity
-  createActivity(activities.LIST, event, token, listerAddress, event.address, listing.quantity, listing.currency, priceETH);
+  createActivity(activities.LIST, event, token, listerAddress, event.address, listing.quantity, listing.currency, listing.buyoutPricePerToken.toBigDecimal());
 }
 
-export function handleListingRemoved(event: ListingRemoved): void {
+export function handleListingRemoved(event: ListingRemovedEvent): void {
   // init local vars from event params
   const listingId     = event.params.listingId;
   const ownerAddress  = event.params.listingCreator;
@@ -75,7 +78,7 @@ export function handleListingRemoved(event: ListingRemoved): void {
   }
 }
 
-export function handleListingUpdated(event: ListingUpdated): void {
+export function handleListingUpdated(event: ListingUpdatedEvent): void {
   // init local vars from event params
   const currentBlock        = event.block
   const listingId           = event.params.listingId
@@ -93,27 +96,25 @@ export function handleListingUpdated(event: ListingUpdated): void {
       // load/check token by ID
       const token     = Token.load(listing.token);
       if (token != null) {
-        const updatedQty = listingMapping.getQuantity();
-        listing.startTime = listingMapping.getStartTime();
-        listing.endTime = listingMapping.getEndTime();
-        listing.quantity = updatedQty;
-        listing.availableQty = updatedQty;
-        listing.currency = listingMapping.getCurrency();
+        const updatedQty            = listingMapping.getQuantity();
+        listing.startTime           = listingMapping.getStartTime();
+        listing.endTime             = listingMapping.getEndTime();
+        listing.quantity            = updatedQty;
+        listing.availableQty        = updatedQty;
+        listing.currency            = listingMapping.getCurrency();
         listing.reservePricePerToken = listingMapping.getReservePricePerToken();
         listing.buyoutPricePerToken = listingMapping.getBuyoutPricePerToken();
-        listing.updatedAt = currentBlock.timestamp;
+        listing.updatedAt           = currentBlock.timestamp;
         listing.save();  
-
-        const priceETH = listing.buyoutPricePerToken.toBigDecimal().div(MANTISSA_FACTOR)
       
         // create update listing activity entity
-        createActivity(activities.UPDATE_LISTING, event, token, ownerAddress, event.address, listing.quantity, listing.currency, priceETH);
+        createActivity(activities.UPDATE_LISTING, event, token, ownerAddress, event.address, listing.quantity, listing.currency, listing.buyoutPricePerToken.toBigDecimal());
       }
     }
   }
 }
 
-export function handleAuctionClosed(event: AuctionClosed): void {
+export function handleAuctionClosed(event: AuctionClosedEvent): void {
   // init local vars from event params
   const listingId     = event.params.listingId
   const closerAddress = event.params.closer
@@ -135,7 +136,7 @@ export function handleAuctionClosed(event: AuctionClosed): void {
   }
 }
 
-export function handleNewOffer(event: NewOffer): void {
+export function handleNewOffer(event: NewOfferEvent): void {
   // init local vars from event params
   const listingId       = event.params.listingId;
   const offerorAddress  = event.params.offeror;
@@ -144,9 +145,6 @@ export function handleNewOffer(event: NewOffer): void {
   const offerAmount     = event.params.totalOfferAmount;
   const expiredTimestamp = event.params.expiredTimestamp;
   const offeror         = createOrLoadAccount(offerorAddress)
-
-  const amountETH       = offerAmount.toBigDecimal().div(MANTISSA_FACTOR)
-  const priceETH        = amountETH.div(quantity.toBigDecimal())
 
   // load/check listing by ID
   const listing     = Listing.load(listingId.toString());
@@ -159,12 +157,12 @@ export function handleNewOffer(event: NewOffer): void {
       createOffer(listing, offeror, quantity, currency, offerAmount.toBigDecimal(), expiredTimestamp, event)
   
       // create make offer activity entity
-      createActivity(activities.MAKE_OFFER, event, token, offerorAddress, Address.fromString(listing.owner), quantity, currency, priceETH);
+      createActivity(activities.MAKE_OFFER, event, token, offerorAddress, Address.fromString(listing.owner), quantity, currency, offerAmount.divDecimal(quantity.toBigDecimal()));
     }
   }
 }
 
-export function handleNewSale(event: NewSale): void {
+export function handleNewSale(event: NewSaleEvent): void {
   // init local vars from event params
   const currentTimestamp  = event.block.timestamp;
   const collectionAddress = event.params.assetContract;
@@ -205,55 +203,11 @@ export function handleNewSale(event: NewSale): void {
       }
       listing.save();
 
-      // if collection is supported royalty
-      let royaltyFee = ZERO_DECIMAL;
-      if (collection.royaltyFee != royaltyFee) {
-        royaltyFee = collection.royaltyFee;
-      } else {
-        const erc2981 = IERC2981.bind(collectionAddress);
-        const try_supportERC2981 = erc2981.try_supportsInterface(Bytes.fromHexString("0x2a55205a")); // ERC2981
-
-        if (!try_supportERC2981.reverted) {
-          const isERC2981 = try_supportERC2981.value
-          if (isERC2981) {
-            const try_royaltyInfo = erc2981.try_royaltyInfo(token.tokenId, totalPaid);
-
-            if (!try_royaltyInfo.reverted) {
-              const royaltyAmount = try_royaltyInfo.value.getRoyaltyAmount()
-
-              // calculate royalty fee for the collection
-              royaltyFee = royaltyAmount.toBigDecimal()
-                .div(totalPaid.toBigDecimal())
-                .times(HUNDRED_DECIMAL);
-
-              // explicit set collection royalty fee
-              collection.royaltyFee = royaltyFee
-            }
-          }
-        }
-      }
-
-      // if marketplace is support platform fee
-      let plaformFee = ZERO_DECIMAL;
-      if (marketplace.platformFee != plaformFee) {
-        plaformFee = marketplace.platformFee
-      } else {
-        const marketplaceContract = Marketplace.bind(event.address);
-        const try_platformFeeBps = marketplaceContract.try_platformFeeBps()
-
-        if (!try_platformFeeBps.reverted) {
-          plaformFee = try_platformFeeBps.value.toBigDecimal().div(HUNDRED_DECIMAL)
-        }
-
-        // explicit set platform fee
-        marketplace.platformFee = plaformFee
-      }
-
       const deltaCreatorRevenueETH = volumeETH
-        .times(royaltyFee)
-        .div(HUNDRED_DECIMAL);
+        .times(token.royaltyFee)
+        .div(HUNDRED_DECIMAL) 
       const deltaMarketplaceRevenueETH = volumeETH
-        .times(plaformFee)
+        .times(marketplace.platformFee)
         .div(HUNDRED_DECIMAL)
 
       // update collection
@@ -323,7 +277,7 @@ export function handleNewSale(event: NewSale): void {
       marketplaceSnapshot.save();
     
       // create update listing activity entity
-      createActivity(activities.SALE, event, token, sellerAddress, buyerAddress, quantity, currency, priceETH);
+      createActivity(activities.SALE, event, token, sellerAddress, buyerAddress, quantity, currency, totalPaid.divDecimal(quantity.toBigDecimal()));
     }
   }
 }
