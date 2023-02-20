@@ -7,11 +7,17 @@ type Marketplace @entity {
   " Smart contract address of the protocol's main contract"
   id: ID!
 
+  " Version of the NFT marketplace implementation"
+  version: Int!
+
   " Platform fee rate in percentage. "
   platformFee: BigDecimal!
 
-  " Version of the NFT marketplace implementation"
-  version: Int!
+  " Bid buffer rate in percentage. "
+  bidBuffer: BigDecimal!
+
+  " Time buffer added to an auction's endtime in seconds. "
+  timeBuffer: BigInt!
 
   cumulativeTradeVolumeETH: BigDecimal!
   marketplaceRevenueETH: BigDecimal!
@@ -132,6 +138,9 @@ type Token @entity(immutable: true) {
 
   " Token ID of the NFT. "
   tokenId: BigInt!
+
+  " Royalty fee rate in percentage. "
+  royaltyFee: BigDecimal!
 
   " Listing of the NFT. "
   listings: [Listing!]! @derivedFrom(field: "token") 
@@ -269,7 +278,8 @@ type DropDetail @entity {
   id: ID!
   startClaimConditionId: BigInt!
   count: BigInt!
-  maxTotalSupply: BigInt!
+  maxTotalSupply: BigInt
+  maxWalletClaim: BigInt
   claimConditions: [DropClaimCondition!]! @derivedFrom(field: "drop")
 }
 
@@ -277,7 +287,7 @@ type DropClaimCondition @entity {
   id: ID!
   drop: DropDetail!
   startTimestamp: BigInt!
-  maxClaimableSupply: BigInt!
+  maxClaimableSupply: BigInt
   quantityLimit: BigInt!
   waitBetweenClaims: BigInt!
   merkleRoot: Bytes!

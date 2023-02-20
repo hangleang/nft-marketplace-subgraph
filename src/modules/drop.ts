@@ -21,7 +21,6 @@ export function createOrLoadDropDetails(entityId: string): DropDetail {
         dropDetail                          = new DropDetail(id)
         dropDetail.startClaimConditionId    = ZERO_BIGINT
         dropDetail.count                    = ZERO_BIGINT
-        dropDetail.maxTotalSupply           = ZERO_BIGINT
         dropDetail.save()
     }
 
@@ -39,7 +38,6 @@ export function createOrLoadDropClaimCondition(
         dropCondition                       = new DropClaimCondition(id)
         dropCondition.drop                  = dropDetail.id
         dropCondition.startTimestamp        = ZERO_BIGINT
-        dropCondition.maxClaimableSupply    = ZERO_BIGINT
         dropCondition.quantityLimit         = ZERO_BIGINT
         dropCondition.waitBetweenClaims     = ZERO_BIGINT
         dropCondition.merkleRoot            = Bytes.empty()
