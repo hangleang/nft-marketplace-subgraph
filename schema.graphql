@@ -7,11 +7,17 @@ type Marketplace @entity {
   " Smart contract address of the protocol's main contract"
   id: ID!
 
+  " Version of the NFT marketplace implementation"
+  version: Int!
+
   " Platform fee rate in percentage. "
   platformFee: BigDecimal!
 
-  " Version of the NFT marketplace implementation"
-  version: Int!
+  " Bid buffer rate in percentage. "
+  bidBuffer: BigDecimal!
+
+  " Time buffer added to an auction's endtime in seconds. "
+  timeBuffer: BigInt!
 
   cumulativeTradeVolumeETH: BigDecimal!
   marketplaceRevenueETH: BigDecimal!

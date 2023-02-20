@@ -8,12 +8,13 @@ import {
   NewOffer as NewOfferEvent,
   NewSale as NewSaleEvent,
   PlatformFeeInfoUpdated as PlatformFeeInfoUpdatedEvent,
-  Upgraded as UpgradedEvent
+  Upgraded as UpgradedEvent,
+  AuctionBuffersUpdated as AuctionBuffersUpdatedEvent
 } from "../generated/Marketplace/Marketplace"
 import { Listing, Token } from "../generated/schema";
 import { createActivity } from "./modules/activity";
 import { createListing } from "./modules/listing";
-import { createOrLoadMarketplace, getOrCreateMarketplaceDailySnapshot, increaseMarketplaceVersion, setPlatformFee } from "./modules/marketplace"
+import { createOrLoadMarketplace, getOrCreateMarketplaceDailySnapshot, increaseMarketplaceVersion } from "./modules/marketplace"
 import { createOrLoadAccount } from "./modules/account";
 import { createOrLoadCollection, getOrCreateCollectionDailySnapshot } from "./modules/collection";
 import { createOrLoadToken } from "./modules/token";
@@ -21,11 +22,21 @@ import { createOffer, loadOffer } from "./modules/offer";
 
 import * as activities from './constants/activities';
 import { MANTISSA_FACTOR, HUNDRED_DECIMAL, ZERO_BIGINT } from "./constants";
-import { Address, BigDecimal, Bytes, store } from "@graphprotocol/graph-ts";
+import { Address, Bytes, store } from "@graphprotocol/graph-ts";
 import { getMax, getMin } from "./utils";
 
 export function handleInitialized(event: InitializedEvent): void {
-  createOrLoadMarketplace(event.block.timestamp);
+  // bind marketplace contract
+  const marketplaceContract = Marketplace.bind(event.address);
+  const try_bidBufferBps    = marketplaceContract.try_bidBufferBps();
+  const try_timeBuffer      = marketplaceContract.try_timeBuffer();
+
+  const marketplace = createOrLoadMarketplace(event.block.timestamp);
+  if (!try_bidBufferBps.reverted && !try_timeBuffer.reverted) {
+    marketplace.bidBuffer  = try_bidBufferBps.value.divDecimal(HUNDRED_DECIMAL)
+    marketplace.timeBuffer = try_timeBuffer.value;
+    marketplace.save()
+  }
 }
 
 export function handleUpgraded(event: UpgradedEvent): void {
@@ -34,7 +45,20 @@ export function handleUpgraded(event: UpgradedEvent): void {
 
 export function handlePlatformFeeInfoUpdated(event: PlatformFeeInfoUpdatedEvent): void {
   const plaformFee = event.params.platformFeeBps.divDecimal(HUNDRED_DECIMAL);
-  setPlatformFee(plaformFee, event.block.timestamp);
+
+  const marketplace 			= createOrLoadMarketplace(event.block.timestamp);
+	marketplace.platformFee = plaformFee;
+	marketplace.updatedAt 	= event.block.timestamp;
+	marketplace.save()
+}
+
+export function handleAuctionBuffersUpdated(event: AuctionBuffersUpdatedEvent): void {
+  const bidBuffer = event.params.bidBufferBps.divDecimal(HUNDRED_DECIMAL);
+
+  const marketplace       = createOrLoadMarketplace(event.block.timestamp);
+  marketplace.bidBuffer   = bidBuffer;
+  marketplace.timeBuffer  = event.params.timeBuffer;
+  marketplace.save()
 }
 
 export function handleListingAdded(event: ListingAddedEvent): void {

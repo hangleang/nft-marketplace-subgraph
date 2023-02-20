@@ -53,6 +53,8 @@ dataSources:
           handler: handleNewSale
         - event: PlatformFeeInfoUpdated(indexed address,uint256)
           handler: handlePlatformFeeInfoUpdated
+        - event: AuctionBuffersUpdated(uint256,uint256)
+          handler: handleAuctionBuffersUpdated
         - event: Upgraded(indexed address)
           handler: handleUpgraded
   - kind: ethereum

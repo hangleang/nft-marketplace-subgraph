@@ -9,8 +9,10 @@ export function createOrLoadMarketplace(currentTimestamp: BigInt): Marketplace {
 
 	if (marketplace == null) {
 		marketplace = new Marketplace(DEFAULT_ID);
-		marketplace.version = 1;
+		marketplace.version 		= 1;
 		marketplace.platformFee = ZERO_DECIMAL;
+		marketplace.bidBuffer 	= ZERO_DECIMAL;
+		marketplace.timeBuffer 	= ZERO_BIGINT;
 
 		// initialize statistic
 		marketplace.cumulativeTradeVolumeETH = ZERO_DECIMAL;
@@ -19,8 +21,8 @@ export function createOrLoadMarketplace(currentTimestamp: BigInt): Marketplace {
 		marketplace.totalRevenueETH = ZERO_DECIMAL;
 	
 		// stamping the creation
-		marketplace.createdAt = currentTimestamp;
-		marketplace.updatedAt = currentTimestamp;
+		marketplace.createdAt 	= currentTimestamp;
+		marketplace.updatedAt 	= currentTimestamp;
 		marketplace.save();
 	}
 
@@ -33,16 +35,6 @@ export function increaseMarketplaceVersion(currentTimestamp: BigInt): void {
 	if (marketplace != null) {
 		marketplace.version 	+= 1;
 		marketplace.updatedAt = currentTimestamp
-		marketplace.save()
-	}
-}
-
-export function setPlatformFee(plaformFee: BigDecimal, currentTimestamp: BigInt): void {
-	let marketplace = Marketplace.load(DEFAULT_ID);
-
-	if (marketplace != null) {
-		marketplace.platformFee = plaformFee;
-		marketplace.updatedAt 	= currentTimestamp
 		marketplace.save()
 	}
 }
