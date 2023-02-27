@@ -45,7 +45,7 @@ export function createOrLoadToken(
   collection: Collection,
   tokenId: BigInt
 ): Token {
-  const id  = generateUID([collection.id, tokenId.toHex(), "/"])
+  const id  = generateUID([collection.id, tokenId.toHex()], "/")
   let token = Token.load(id);
 
   if (token == null) {
