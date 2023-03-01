@@ -48,17 +48,24 @@ export function createOrLoadCollection(
   let collection = Collection.load(collectionAddress);
   if (collection == null) {
     collection = new Collection(collectionAddress);
-    let try_contractURI = contract.try_contractURI();
+    // Try load name, symbol, owner and contractURI, then set to collection entity
+    const try_name = contract.try_name();
+    if (!try_name.reverted) {
+      collection.name = try_name.value;
+    }
+    const try_symbol = contract.try_symbol();
+    if (!try_symbol.reverted) {
+      collection.symbol = try_symbol.value;
+    }
     let try_owner = contract.try_owner();
+    if (!try_owner.reverted) {
+      collection.owner = createOrLoadAccount(try_owner.value).id;
+    }
+    let try_contractURI = contract.try_contractURI();
     const metadataURI: string | null = try_contractURI.reverted
       ? null
       : try_contractURI.value;
     collection.metadataURI = metadataURI ? formatURI(metadataURI, null) : null;
-
-    // Try load owner, then set to collection entity
-    if (!try_owner.reverted) {
-      collection.owner = createOrLoadAccount(try_owner.value).id;
-    }
 
     if (isERC721) {
       collection.collectionType = collections.SINGLE; // ERC721

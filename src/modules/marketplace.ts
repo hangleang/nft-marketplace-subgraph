@@ -1,14 +1,15 @@
-import { BigDecimal, BigInt } from "@graphprotocol/graph-ts";
+import { Address, BigInt } from "@graphprotocol/graph-ts";
 import { Marketplace, MarketplaceDailySnapshot } from "../../generated/schema";
-import { SECONDS_PER_DAY, ZERO_BIGINT, ZERO_DECIMAL } from "../constants";
+import { MARKETPLACE_NAME, MARKETPLACE_SLUG, SECONDS_PER_DAY, ZERO_BIGINT, ZERO_DECIMAL } from "../constants";
+import { createOrLoadAccount } from "./account";
 
-const DEFAULT_ID = "nft-marketplace"
-
-export function createOrLoadMarketplace(currentTimestamp: BigInt): Marketplace {
-	let marketplace = Marketplace.load(DEFAULT_ID);
+export function createOrLoadMarketplace(address: Address, currentTimestamp: BigInt): Marketplace {
+	let marketplace = Marketplace.load(address.toHex());
 
 	if (marketplace == null) {
-		marketplace = new Marketplace(DEFAULT_ID);
+		marketplace = new Marketplace(address.toHex());
+		marketplace.name 				= MARKETPLACE_NAME;
+		marketplace.slug				= MARKETPLACE_SLUG;
 		marketplace.version 		= 1;
 		marketplace.platformFee = ZERO_DECIMAL;
 		marketplace.bidBuffer 	= ZERO_DECIMAL;
@@ -24,13 +25,16 @@ export function createOrLoadMarketplace(currentTimestamp: BigInt): Marketplace {
 		marketplace.createdAt 	= currentTimestamp;
 		marketplace.updatedAt 	= currentTimestamp;
 		marketplace.save();
+
+		// explicit create account for marketplace
+		createOrLoadAccount(address);
 	}
 
 	return marketplace;
 }
 
-export function increaseMarketplaceVersion(currentTimestamp: BigInt): void {
-  let marketplace = Marketplace.load(DEFAULT_ID);
+export function increaseMarketplaceVersion(address: Address, currentTimestamp: BigInt): void {
+  let marketplace = Marketplace.load(address.toHex());
 
 	if (marketplace != null) {
 		marketplace.version 	+= 1;

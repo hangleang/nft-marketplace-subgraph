@@ -31,7 +31,7 @@ export function handleInitialized(event: InitializedEvent): void {
   const try_bidBufferBps    = marketplaceContract.try_bidBufferBps();
   const try_timeBuffer      = marketplaceContract.try_timeBuffer();
 
-  const marketplace = createOrLoadMarketplace(event.block.timestamp);
+  const marketplace = createOrLoadMarketplace(event.address, event.block.timestamp);
   if (!try_bidBufferBps.reverted && !try_timeBuffer.reverted) {
     marketplace.bidBuffer  = try_bidBufferBps.value.divDecimal(HUNDRED_DECIMAL)
     marketplace.timeBuffer = try_timeBuffer.value;
@@ -40,13 +40,13 @@ export function handleInitialized(event: InitializedEvent): void {
 }
 
 export function handleUpgraded(event: UpgradedEvent): void {
-  increaseMarketplaceVersion(event.block.timestamp);
+  increaseMarketplaceVersion(event.address, event.block.timestamp);
 }
 
 export function handlePlatformFeeInfoUpdated(event: PlatformFeeInfoUpdatedEvent): void {
   const plaformFee = event.params.platformFeeBps.divDecimal(HUNDRED_DECIMAL);
 
-  const marketplace 			= createOrLoadMarketplace(event.block.timestamp);
+  const marketplace 			= createOrLoadMarketplace(event.address, event.block.timestamp);
 	marketplace.platformFee = plaformFee;
 	marketplace.updatedAt 	= event.block.timestamp;
 	marketplace.save()
@@ -55,7 +55,7 @@ export function handlePlatformFeeInfoUpdated(event: PlatformFeeInfoUpdatedEvent)
 export function handleAuctionBuffersUpdated(event: AuctionBuffersUpdatedEvent): void {
   const bidBuffer = event.params.bidBufferBps.divDecimal(HUNDRED_DECIMAL);
 
-  const marketplace       = createOrLoadMarketplace(event.block.timestamp);
+  const marketplace       = createOrLoadMarketplace(event.address, event.block.timestamp);
   marketplace.bidBuffer   = bidBuffer;
   marketplace.timeBuffer  = event.params.timeBuffer;
   marketplace.save()
@@ -198,7 +198,7 @@ export function handleNewSale(event: NewSaleEvent): void {
 
   createOrLoadAccount(sellerAddress)
   const buyer             = createOrLoadAccount(buyerAddress)
-  const marketplace       = createOrLoadMarketplace(currentTimestamp)
+  const marketplace       = createOrLoadMarketplace(event.address, currentTimestamp)
   const collection        = createOrLoadCollection(collectionAddress, currentTimestamp)
 
   const volumeETH         = totalPaid.toBigDecimal().div(MANTISSA_FACTOR);

@@ -7,6 +7,12 @@ type Marketplace @entity {
   " Smart contract address of the protocol's main contract"
   id: ID!
 
+  " Name of the NFT marketplace, for example LooksRare "
+  name: String!
+
+  " Slug of the NFT marketplace, for example looksrare "
+  slug: String!
+
   " Version of the NFT marketplace implementation"
   version: Int!
 
@@ -19,9 +25,16 @@ type Marketplace @entity {
   " Time buffer added to an auction's endtime in seconds. "
   timeBuffer: BigInt!
 
+  " Cumulative trade volume (in ETH) "
   cumulativeTradeVolumeETH: BigDecimal!
+
+  " Revenue that goes to the marketplace protocol, aka protocol fee. "
   marketplaceRevenueETH: BigDecimal!
+
+  " Revenue that goes to creator, aka royalty fee. "
   creatorRevenueETH: BigDecimal!
+
+  " Sum of marketplaceRevenueETH and creatorRevenueETH. "
   totalRevenueETH: BigDecimal!
 
   " Marketplace daily snapshots. "
@@ -61,6 +74,12 @@ type Collection @entity {
   " Contract address. "
   id: ID!
 
+  " Collection name, mirrored from the smart contract. Leave null if not available. "
+  name: String
+
+  " Collection symbol, mirrored from the smart contract. Leave null if not available. "
+  symbol: String
+
   " NFT Collection Standard. "
   collectionType: CollectionType!
 
@@ -88,9 +107,16 @@ type Collection @entity {
   " Metadata of the collection. "
   metadata: CollectionMetadata
 
+  " Cumulative trade volume (in ETH) "
   cumulativeTradeVolumeETH: BigDecimal!
+
+  " Revenue that goes to the marketplace protocol, aka protocol fee. "
   marketplaceRevenueETH: BigDecimal!
+
+  " Revenue that goes to creator, aka royalty fee. "
   creatorRevenueETH: BigDecimal!
+
+  " Sum of marketplaceRevenue and creatorRevenue. "
   totalRevenueETH: BigDecimal!
 
   " Collection daily snapshots. "
@@ -249,13 +275,13 @@ type Activity @entity(immutable: true) {
   from: Account!
 
   " Account address of whom triggered the activity. "
-  to: Account
+  to: Account!
 
   " Collection involved. "
-  collection: Collection
+  collection: Collection!
 
   " NFT involved. "
-  token: Token
+  token: Token!
 
   " Amount of the NFT for the activity. It is set at 1 except for MultiEdition NFT.  "
   quantity: BigInt
@@ -401,23 +427,23 @@ enum ActivityType {
 # }
 
 # fullTextSearch
-# type _Schema_
+type _Schema_
 
-# @fulltext(
-#   name: "collectionsSearch"
-#   language: en
-#   algorithm: proximityRank
-#   include: [
-#     {
-#       entity: "Collection",
-#       fields: [
-#         { name: "id" },
-#         { name: "name" },
-#         { name: "symbol" },
-#       ]
-#     }
-#   ]
-# )
+@fulltext(
+  name: "collectionsSearch"
+  language: en
+  algorithm: proximityRank
+  include: [
+    {
+      entity: "Collection",
+      fields: [
+        { name: "id" },
+        { name: "name" },
+        { name: "symbol" },
+      ]
+    }
+  ]
+)
 
 # @fulltext(
 #   name: "tokenSearch"
