@@ -1,5 +1,7 @@
 import { Address, BigDecimal, BigInt } from "@graphprotocol/graph-ts";
 
+export const MARKETPLACE_NAME: string = "WTF Marketplace";
+export const MARKETPLACE_SLUG: string = "wtf-marketplace";
 export const ZERO_BIGINT: BigInt = BigInt.zero();
 export const ZERO_DECIMAL: BigDecimal = BigDecimal.zero();
 export const HUNDRED_DECIMAL = BigInt.fromI32(100).toBigDecimal();
