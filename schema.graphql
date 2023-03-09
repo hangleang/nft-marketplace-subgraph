@@ -226,6 +226,9 @@ type Listing @entity {
 
   " Sold out timestamp of the listing. "
   soldAt: BigInt
+
+  " Timestamp of closing the auction. "
+  closedAt: BigInt
 }
 
 type Offer @entity {

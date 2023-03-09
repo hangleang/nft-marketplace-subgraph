@@ -22,7 +22,7 @@ import { createOffer, loadOffer } from "./modules/offer";
 
 import * as activities from './constants/activities';
 import { MANTISSA_FACTOR, HUNDRED_DECIMAL, ZERO_BIGINT } from "./constants";
-import { Address, Bytes, store } from "@graphprotocol/graph-ts";
+import { Address, Bytes } from "@graphprotocol/graph-ts";
 import { getMax, getMin } from "./utils";
 
 export function handleInitialized(event: InitializedEvent): void {
@@ -83,6 +83,7 @@ export function handleListingAdded(event: ListingAddedEvent): void {
 
 export function handleListingRemoved(event: ListingRemovedEvent): void {
   // init local vars from event params
+  const currentTimestamp = event.block.timestamp;
   const listingId     = event.params.listingId;
   const ownerAddress  = event.params.listingCreator;
   createOrLoadAccount(ownerAddress)
@@ -96,8 +97,11 @@ export function handleListingRemoved(event: ListingRemovedEvent): void {
       // create list activity entity
       createActivity(activities.UNLIST, event, token, ownerAddress, event.address, listing.availableQty);
 
-      // remove listing entity from store
-      store.remove('Listing', listingId.toString())
+      // soft-delete the listing entity
+      listing.availableQty  = ZERO_BIGINT
+      listing.closedAt      = currentTimestamp
+      listing.updatedAt     = currentTimestamp
+      listing.save()
     }
   }
 }
@@ -140,8 +144,10 @@ export function handleListingUpdated(event: ListingUpdatedEvent): void {
 
 export function handleAuctionClosed(event: AuctionClosedEvent): void {
   // init local vars from event params
+  const currentTimestamp = event.block.timestamp
   const listingId     = event.params.listingId
   const closerAddress = event.params.closer
+  const isCancel      = event.params.cancelled
   createOrLoadAccount(closerAddress)
 
   // load/check listing by ID
@@ -154,8 +160,16 @@ export function handleAuctionClosed(event: AuctionClosedEvent): void {
       // create close auction activity entity
       createActivity(activities.CLOSE_AUCTION, event, token, closerAddress, event.address, listing.availableQty)
 
-      // remove listing entity from store
-      store.remove('Listing', listingId.toString())
+      listing.availableQty  = ZERO_BIGINT
+      listing.updatedAt     = currentTimestamp
+      // check if close by cancel.
+      if (isCancel) {
+        // soft-delete the listing entity
+        listing.closedAt    = currentTimestamp
+      } else {
+        listing.soldAt      = currentTimestamp
+      }
+      listing.save()
     }
   }
 }
