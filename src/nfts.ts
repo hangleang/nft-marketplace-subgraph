@@ -17,14 +17,15 @@ import {
   createOrLoadDropClaimCondition,
 } from "./modules/drop";
 
-import { HUNDRED_DECIMAL, ONE_BIGINT } from "./constants";
+import { HUNDRED_DECIMAL, ONE_BIGINT, ZERO_BIGINT, ZERO_DECIMAL } from "./constants";
 import { store } from "@graphprotocol/graph-ts";
 import { createOrLoadToken } from "./modules/token";
+import { safeDivDecimal } from "./utils";
 
 export function handleDefaultRoyalty(event: DefaultRoyaltyEvent): void {
 	// init local vars from event params
   const currentBlock 	= event.block;
-	const royaltyFee 		= event.params.newRoyaltyBps.divDecimal(HUNDRED_DECIMAL)
+	const royaltyFee 		= safeDivDecimal(event.params.newRoyaltyBps, HUNDRED_DECIMAL);
 
   // Try create new collection entity, if not yet exist
   const collection = createOrLoadCollection(
@@ -41,7 +42,7 @@ export function handleRoyaltyForToken(event: RoyaltyForTokenEvent): void {
 	// init local vars from event params
   const currentBlock 	= event.block;
 	const tokenId 			= event.params.tokenId;
-	const royaltyFee 		= event.params.royaltyBps.divDecimal(HUNDRED_DECIMAL)
+	const royaltyFee 		= safeDivDecimal(event.params.royaltyBps, HUNDRED_DECIMAL)
 
   // Try create new collection entity, if not yet exist
   const collection = createOrLoadCollection(

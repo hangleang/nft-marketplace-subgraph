@@ -4,6 +4,7 @@ import { base64ToJSON, isBase64JSON, isBase64 } from "./base64";
 // import { httpsToJSON, isHTTPS } from "./https";
 import { isArweave, toArweaveGateway } from "./arweave";
 import { isHTTPS } from "./https";
+import { ZERO_BIGINT, ZERO_DECIMAL } from "../constants";
 
 export * from './ipfs';
 export * from './https';
@@ -101,4 +102,9 @@ export function getMin(left: BigDecimal, right: BigDecimal): BigDecimal {
     } else {
         return right;
     }
+}
+
+export function safeDivDecimal(a: BigInt, b: BigDecimal): BigDecimal {
+    if (a.equals(ZERO_BIGINT)) return ZERO_DECIMAL; 
+    return a.divDecimal(b)
 }

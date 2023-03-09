@@ -23,7 +23,7 @@ import { createOffer, loadOffer } from "./modules/offer";
 import * as activities from './constants/activities';
 import { MANTISSA_FACTOR, HUNDRED_DECIMAL, ZERO_BIGINT } from "./constants";
 import { Address, Bytes } from "@graphprotocol/graph-ts";
-import { getMax, getMin } from "./utils";
+import { getMax, getMin, safeDivDecimal } from "./utils";
 
 export function handleInitialized(event: InitializedEvent): void {
   // bind marketplace contract
@@ -33,7 +33,7 @@ export function handleInitialized(event: InitializedEvent): void {
 
   const marketplace = createOrLoadMarketplace(event.address, event.block.timestamp);
   if (!try_bidBufferBps.reverted && !try_timeBuffer.reverted) {
-    marketplace.bidBuffer  = try_bidBufferBps.value.divDecimal(HUNDRED_DECIMAL)
+    marketplace.bidBuffer  = safeDivDecimal(try_bidBufferBps.value, HUNDRED_DECIMAL)
     marketplace.timeBuffer = try_timeBuffer.value;
     marketplace.save()
   }
@@ -44,7 +44,7 @@ export function handleUpgraded(event: UpgradedEvent): void {
 }
 
 export function handlePlatformFeeInfoUpdated(event: PlatformFeeInfoUpdatedEvent): void {
-  const plaformFee = event.params.platformFeeBps.divDecimal(HUNDRED_DECIMAL);
+  const plaformFee = safeDivDecimal(event.params.platformFeeBps, HUNDRED_DECIMAL)
 
   const marketplace 			= createOrLoadMarketplace(event.address, event.block.timestamp);
 	marketplace.platformFee = plaformFee;
@@ -53,7 +53,7 @@ export function handlePlatformFeeInfoUpdated(event: PlatformFeeInfoUpdatedEvent)
 }
 
 export function handleAuctionBuffersUpdated(event: AuctionBuffersUpdatedEvent): void {
-  const bidBuffer = event.params.bidBufferBps.divDecimal(HUNDRED_DECIMAL);
+  const bidBuffer = safeDivDecimal(event.params.bidBufferBps, HUNDRED_DECIMAL)
 
   const marketplace       = createOrLoadMarketplace(event.address, event.block.timestamp);
   marketplace.bidBuffer   = bidBuffer;
@@ -195,7 +195,7 @@ export function handleNewOffer(event: NewOfferEvent): void {
       createOffer(listing, offeror, quantity, currency, offerAmount.toBigDecimal(), expiredTimestamp, event)
   
       // create make offer activity entity
-      createActivity(activities.MAKE_OFFER, event, token, offerorAddress, Address.fromString(listing.owner), quantity, currency, offerAmount.divDecimal(quantity.toBigDecimal()));
+      createActivity(activities.MAKE_OFFER, event, token, offerorAddress, Address.fromString(listing.owner), quantity, currency, safeDivDecimal(offerAmount, quantity.toBigDecimal()));
     }
   }
 }
@@ -315,7 +315,7 @@ export function handleNewSale(event: NewSaleEvent): void {
       marketplaceSnapshot.save();
     
       // create update listing activity entity
-      createActivity(activities.SALE, event, token, sellerAddress, buyerAddress, quantity, currency, totalPaid.divDecimal(quantity.toBigDecimal()));
+      createActivity(activities.SALE, event, token, sellerAddress, buyerAddress, quantity, currency, safeDivDecimal(totalPaid, quantity.toBigDecimal()));
     }
   }
 }
