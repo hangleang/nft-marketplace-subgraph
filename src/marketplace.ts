@@ -147,7 +147,6 @@ export function handleAuctionClosed(event: AuctionClosedEvent): void {
   const currentTimestamp = event.block.timestamp
   const listingId     = event.params.listingId
   const closerAddress = event.params.closer
-  const isCancel      = event.params.cancelled
   createOrLoadAccount(closerAddress)
 
   // load/check listing by ID
@@ -162,13 +161,7 @@ export function handleAuctionClosed(event: AuctionClosedEvent): void {
 
       listing.availableQty  = ZERO_BIGINT
       listing.updatedAt     = currentTimestamp
-      // check if close by cancel.
-      if (isCancel) {
-        // soft-delete the listing entity
-        listing.closedAt    = currentTimestamp
-      } else {
-        listing.soldAt      = currentTimestamp
-      }
+      listing.closedAt      = currentTimestamp
       listing.save()
     }
   }
@@ -237,7 +230,7 @@ export function handleNewSale(event: NewSaleEvent): void {
       // update quantity in the listing after partial sold
       listing.availableQty = listing.availableQty.minus(quantity);
       if (listing.availableQty == ZERO_BIGINT) {
-        listing.soldAt = currentTimestamp;
+        listing.closedAt = currentTimestamp;
       }
       listing.save();
 

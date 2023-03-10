@@ -224,8 +224,8 @@ type Listing @entity {
   " Latest update timestamp of the listing. "
   updatedAt: BigInt!
 
-  " Sold out timestamp of the listing. "
-  soldAt: BigInt
+  # " Sold out timestamp of the listing. "
+  # soldAt: BigInt
 
   " Timestamp of closing the auction. "
   closedAt: BigInt
